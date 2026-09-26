@@ -1,5 +1,5 @@
-import "dotenv/config";
 import axios from "axios";
+import config from "./src/config/env.js";
 
 async function getLinkedInUrn(token, accountName) {
   if (!token) {
@@ -26,8 +26,8 @@ async function getLinkedInUrn(token, accountName) {
 async function main() {
   console.log("Retrieving LinkedIn URNs for your tokens...");
   
-  await getLinkedInUrn(process.env.LI_ACCESS_TOKEN1 || process.env.LI_ACCESS_TOKEN, "Account 1");
-  await getLinkedInUrn(process.env.LI_ACCESS_TOKEN2, "Account 2");
+  await getLinkedInUrn(config.channels.linkedin.token1, "Account 1");
+  await getLinkedInUrn(config.channels.linkedin.token2, "Account 2");
 }
 
 main();

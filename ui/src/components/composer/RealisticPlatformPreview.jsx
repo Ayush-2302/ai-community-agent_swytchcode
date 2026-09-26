@@ -33,7 +33,7 @@ export function RealisticPlatformPreview({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 leading-tight">
               <span className="font-semibold text-slate-900 truncate">
-                {account.includes("@") ? "Acme Engineering" : account || "Acme Official"}
+                {account.includes("@") ? "Developer Stream" : account || "Developer Stream"}
               </span>
               <span className="inline-block w-3.5 h-3.5 text-blue-500 shrink-0">
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -41,7 +41,7 @@ export function RealisticPlatformPreview({
                 </svg>
               </span>
               <span className="text-slate-500 font-normal truncate">
-                {account || "@acme_eng"}
+                {account || "@developer_stream"}
               </span>
               <span className="text-slate-400">·</span>
               <span className="text-slate-400">now</span>
@@ -108,7 +108,7 @@ export function RealisticPlatformPreview({
             </div>
             <div>
               <div className="font-semibold text-slate-900 text-xs">
-                {account || "Acme Cloud Technologies"}
+                {account || "dotenvcoder"}
               </div>
               <div className="text-[11px] text-slate-500">14,290 followers</div>
               <div className="flex items-center gap-1 text-[10px] text-slate-400">
@@ -177,7 +177,7 @@ export function RealisticPlatformPreview({
               </div>
             </div>
             <span className="font-semibold text-xs text-slate-900">
-              {account || "acmelabs"}
+              {account || "kanhacode"}
             </span>
           </div>
           <MoreHorizontal className="w-4 h-4 text-slate-400" />
@@ -211,12 +211,45 @@ export function RealisticPlatformPreview({
           </div>
 
           <div className="text-slate-900 leading-normal text-xs">
-            <span className="font-semibold mr-1.5">{account || "acmelabs"}</span>
+            <span className="font-semibold mr-1.5">{account || "kanhacode"}</span>
             <span className="text-slate-800">
               {content || "Instagram caption preview text..."}
             </span>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Notion Preview
+  if (norm === "notion") {
+    return (
+      <div className="bg-white border border-slate-200 rounded-lg p-4 text-xs text-slate-800 font-sans shadow-none">
+        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+          <PlatformIcon platform="notion" className="w-4 h-4 text-slate-700" />
+          <span className="font-semibold text-slate-900 text-xs truncate">
+            {account || "Notion Roadmap & Database"}
+          </span>
+          <span className="text-[10px] text-slate-400 font-mono ml-auto">Page entry</span>
+        </div>
+        <div className="font-semibold text-sm text-slate-900 mb-2">
+          {content ? content.slice(0, 50) : "Untitled Notion Page"}
+        </div>
+        <div className="text-slate-700 whitespace-pre-wrap leading-relaxed text-xs">
+          {content || "Notion page body and content will render here..."}
+        </div>
+        {mediaUrl && (
+          <div className="mt-3 rounded border border-slate-200 overflow-hidden max-h-56 bg-slate-100">
+            <img
+              src={mediaUrl}
+              alt=""
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -230,7 +263,7 @@ export function RealisticPlatformPreview({
         </div>
         <div>
           <div className="font-semibold text-xs text-slate-900">
-            {account || "Acme Official Page"}
+            {account || "AI Community"}
           </div>
           <div className="text-[10px] text-slate-400 flex items-center gap-1">
             <span>Just now</span> · <Globe className="w-2.5 h-2.5" />

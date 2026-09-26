@@ -124,10 +124,11 @@ export function CalendarView({ posts = [], onOpenCreatePost }) {
           >
             <option value="All">All Platforms</option>
             <option value="X">X (Twitter)</option>
+            <option value="Telegram">Telegram</option>
+            <option value="Notion">Notion</option>
             <option value="LinkedIn">LinkedIn</option>
             <option value="Instagram">Instagram</option>
             <option value="Facebook">Facebook</option>
-            <option value="Telegram">Telegram</option>
             <option value="Slack">Slack</option>
           </select>
 
@@ -282,7 +283,11 @@ export function CalendarView({ posts = [], onOpenCreatePost }) {
                       >
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusDot}`} />
                         <PlatformIcon platform={p.platform} className="w-3 h-3 text-slate-500 shrink-0" />
-                        <span className="truncate">{p.title}</span>
+                        <span className="truncate">
+                          {typeof p.title === "object"
+                            ? p.title?.caption || p.title?.title || JSON.stringify(p.title)
+                            : p.title}
+                        </span>
                       </div>
                     );
                   })}

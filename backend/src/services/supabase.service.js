@@ -2,12 +2,13 @@ import { createClient } from "@supabase/supabase-js";
 import fs from "fs/promises";
 import mime from "mime-types";
 import path from "path";
+import config from "../config/env.js";
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_KEY;
-const BUCKET_NAME = process.env.BUCKET_NAME;
+const SUPABASE_URL = config.media.supabase.url;
+const SUPABASE_KEY = config.media.supabase.key;
+const BUCKET_NAME = config.media.supabase.bucketName;
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = (SUPABASE_URL && SUPABASE_KEY) ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 /**
  * Uploads a file to Supabase storage and returns the public URL
@@ -16,6 +17,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
  * @returns {Promise<string>} Public URL of the uploaded file
  */
 export async function uploadToSupabase(filePath, destinationName) {
+  if (!supabase) {
+    throw new Error("Supabase storage client is not configured. Missing SUPABASE_URL or SUPABASE_KEY.");
+  }
   const fileBuffer = await fs.readFile(filePath);
   const contentType = mime.lookup(filePath) || "application/octet-stream";
 
@@ -36,6 +40,7 @@ export async function uploadToSupabase(filePath, destinationName) {
 }
 
 export async function deleteFromSupabase(destinationName) {
+  if (!supabase) return;
   const { error } = await supabase.storage
     .from(BUCKET_NAME)
     .remove([destinationName]);

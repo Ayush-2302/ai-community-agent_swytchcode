@@ -1,11 +1,12 @@
 import axios from "axios";
+import config from "../../config/env.js";
 
 class ImageSearchService {
   constructor() {
-    this.pixabayKey = process.env.PIXABAY_API_KEY;
-    this.unsplashKey = process.env.UNSPLASH_ACCESS;
-    this.freepikKey = process.env.FREEPIK_API_KEY;
-    this.pexelsKey = process.env.PEXELS_API_KEY;
+    this.pixabayKey = config.media.pixabayApiKey;
+    this.unsplashKey = config.media.unsplashAccess;
+    this.freepikKey = config.media.freepikApiKey;
+    this.pexelsKey = config.media.pexelsApiKey;
   }
 
   async search(query, orientation = "landscape") {

@@ -2,10 +2,11 @@ import { GoogleGenAI } from "@google/genai";
 import fs from "fs";
 import { Ollama } from "ollama";
 import path from "path";
+import config from "../config/env.js";
 
-const OLLAMA_HOST = process.env.OLLAMA_URL;
+const OLLAMA_HOST = config.ai.ollamaUrl;
 const ollama = new Ollama({ host: OLLAMA_HOST });
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: config.ai.geminiApiKey });
 
 const PRIMARY_MODEL = "gemma4:31b-cloud";
 // const PRIMARY_MODEL = "glm-5.1:cloude"
@@ -620,7 +621,7 @@ function loadUsedTopics(nicheId = "generic") {
     if (fs.existsSync(filePath)) {
       return JSON.parse(fs.readFileSync(filePath, "utf-8"));
     }
-  } catch (e) {}
+  } catch (e) { }
   return [];
 }
 
@@ -634,7 +635,7 @@ function saveUsedTopic(topic, nicheId = "generic") {
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
     }
     fs.writeFileSync(filePath, JSON.stringify(usedTopics, null, 2));
-  } catch (e) {}
+  } catch (e) { }
 }
 
 export async function generateTopic(nicheId) {
@@ -868,8 +869,8 @@ export async function optimizeSearchQuery(topic, nicheId) {
   const styleHint = isSad
     ? "FOCUS ON: cinematic 35mm film photography, analog mood, moody night city bokeh, soft rain on glass, solitary contemplative silhouette, warm cozy indoor lamp light, twilight blue hour, deep shadows with clean negative space."
     : isKanha
-    ? "FOCUS ON: divine Krishna aesthetic, golden dawn mist, peacock feather subtle motif, serene temple architecture, cosmic blue atmosphere, meditative calmness."
-    : "FOCUS ON: cinematic stock footage, mood, tension, environment, or symbolic energy.";
+      ? "FOCUS ON: divine Krishna aesthetic, golden dawn mist, peacock feather subtle motif, serene temple architecture, cosmic blue atmosphere, meditative calmness."
+      : "FOCUS ON: cinematic stock footage, mood, tension, environment, or symbolic energy.";
 
   const prompt = `
 Convert this TOPIC into 3 precise, high-converting image search queries for premium stock photography.

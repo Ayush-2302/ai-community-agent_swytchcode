@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   FolderKanban,
   Plus,
@@ -15,12 +15,49 @@ import { PlatformIcon } from "../components/common/PlatformIcon";
 import { Card, CardHeader } from "../components/common/Card";
 import { Modal } from "../components/common/Modal";
 import { Input, Textarea } from "../components/common/Input";
+import { EmptyState } from "../components/common/EmptyState";
 import { useToast } from "../components/common/Toast";
-import { CAMPAIGNS } from "../services/mockData";
 
-export function CampaignsView({ posts = [], onOpenCreatePost }) {
+export function CampaignsView({ posts = [], campaigns = [], onOpenCreatePost }) {
   const { addToast } = useToast();
-  const [campaignList, setCampaignList] = useState(CAMPAIGNS);
+
+  const derivedCampaigns = useMemo(() => {
+    if (campaigns && campaigns.length > 0) return campaigns;
+    const campaignMap = {};
+    posts.forEach((p) => {
+      const rawCamp = typeof p.campaign === "object" ? p.campaign?.name || p.campaign?.caption || "General" : p.campaign;
+      const name = rawCamp || "General";
+      if (!campaignMap[name]) {
+        campaignMap[name] = {
+          id: `cmp_${name.toLowerCase().replace(/\s+/g, "_")}`,
+          name,
+          description: `Campaign initiative for ${name}`,
+          platforms: [],
+          postsCount: 0,
+          publishedCount: 0,
+          startDate: "Ongoing",
+          endDate: "2026-12-31",
+          status: "Active",
+          impressions: "0",
+          engagementRate: "0.0%",
+        };
+      }
+      campaignMap[name].postsCount++;
+      if (p.status === "Published" || p.status === "PUBLISHED") {
+        campaignMap[name].publishedCount++;
+      }
+      if (p.platform && !campaignMap[name].platforms.includes(p.platform)) {
+        campaignMap[name].platforms.push(p.platform);
+      }
+    });
+    return Object.values(campaignMap);
+  }, [campaigns, posts]);
+
+  const [campaignList, setCampaignList] = useState(derivedCampaigns);
+
+  useEffect(() => {
+    setCampaignList(derivedCampaigns);
+  }, [derivedCampaigns]);
   const [activeCampaignDetail, setActiveCampaignDetail] = useState(null);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
 
@@ -94,9 +131,19 @@ export function CampaignsView({ posts = [], onOpenCreatePost }) {
       </div>
 
       {/* Campaigns Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {campaignList.map((cmp) => {
-          const associatedPosts = getCampaignPosts(cmp.name);
+      {campaignList.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-lg p-10">
+          <EmptyState
+            title="No campaigns found"
+            description="Create your first campaign or tag posts with a campaign name to track aggregate performance."
+            actionLabel="New Campaign"
+            onAction={() => setIsNewModalOpen(true)}
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {campaignList.map((cmp) => {
+            const associatedPosts = getCampaignPosts(cmp.name);
 
           return (
             <Card key={cmp.id} padding="md" className="flex flex-col justify-between">
@@ -165,7 +212,8 @@ export function CampaignsView({ posts = [], onOpenCreatePost }) {
             </Card>
           );
         })}
-      </div>
+        </div>
+      )}
 
       {/* Associated Posts Modal */}
       {activeCampaignDetail && (

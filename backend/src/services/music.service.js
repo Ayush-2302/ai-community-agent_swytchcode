@@ -7,8 +7,9 @@ import {
   markUsedSong,
   searchYoutube,
 } from "./youtube.service.js";
+import config from "../config/env.js";
 
-const JAMENDO_CLIENT_ID = process.env.JAMENDO_CLIENT_ID || "66983191";
+const JAMENDO_CLIENT_ID = config.media.jamendoClientId;
 
 const AUTHENTIC_HINDI_MUSIC_CHANNELS = [
   { name: "T-Series", handle: "@tseries" },
@@ -88,18 +89,18 @@ function buildYoutubeSearchQueries(metadata = {}) {
     const ch1 = randomItem(AUTHENTIC_HINDI_MUSIC_CHANNELS);
     const ch2 = randomItem(AUTHENTIC_HINDI_MUSIC_CHANNELS);
 
-    // Filter out instrumental/flute/meditation keywords to guarantee real songs with vocals
+    // Filter instrumental keywords for vocal niches
     const cleanedSeed = stripInstrumentalWords(seed);
 
     const queries = [];
-    // Primary: drive search off the LLM's per-quote song suggestion
+    // Primary song seed queries
     if (cleanedSeed && cleanedSeed.length > 3) {
       queries.push(`${cleanedSeed} official audio`);
       queries.push(`${cleanedSeed} ${ch1.name}`);
       queries.push(`${cleanedSeed} sad Hindi song`);
     }
 
-    // Dynamic generic fallbacks (no hardcoded song titles)
+    // Dynamic genre queries
     queries.push(
       `sad Hindi song ${ch1.name} official audio`,
       `heartbreak emotional Hindi song ${ch2.name}`,
@@ -116,7 +117,7 @@ function buildYoutubeSearchQueries(metadata = {}) {
     const spCh2 = randomItem(AUTHENTIC_SPIRITUAL_CHANNELS);
 
     const queries = [];
-    // Primary: drive search directly off the LLM's per-quote song/instrumental suggestion
+    // Primary spiritual seed queries
     if (seed && seed.length > 3) {
       queries.push(`${seed} official audio`);
       queries.push(`${seed} ${spCh1.name}`);
@@ -125,7 +126,7 @@ function buildYoutubeSearchQueries(metadata = {}) {
       queries.push(`${seed} ${spCh2.name}`);
     }
 
-    // Dynamic generic fallbacks for best slow latest songs and instrumental tracks from top channels
+    // Fallback spiritual tracks
     queries.push(
       `trending Krishna slow song ${spCh1.name}`,
       `Radha Krishna serial flute theme instrumental`,

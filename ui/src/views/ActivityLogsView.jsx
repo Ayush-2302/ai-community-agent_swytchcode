@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Terminal,
   Search,
@@ -16,10 +16,10 @@ import { Button } from "../components/common/Button";
 import { StatusBadge } from "../components/common/Badge";
 import { PlatformIcon } from "../components/common/PlatformIcon";
 import { Modal } from "../components/common/Modal";
+import { EmptyState } from "../components/common/EmptyState";
 import { useToast } from "../components/common/Toast";
-import { ACTIVITY_LOGS } from "../services/mockData";
 
-export function ActivityLogsView({ logs = ACTIVITY_LOGS }) {
+export function ActivityLogsView({ logs = [], onRefresh }) {
   const { addToast } = useToast();
   const [logList, setLogList] = useState(logs);
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,10 +28,35 @@ export function ActivityLogsView({ logs = ACTIVITY_LOGS }) {
   const [inspectingLog, setInspectingLog] = useState(null);
   const [isLiveStreaming, setIsLiveStreaming] = useState(true);
 
+  useEffect(() => {
+    if (logs) {
+      setLogList(logs);
+    }
+  }, [logs]);
+
+  // Auto-poll live logs when stream is active
+  useEffect(() => {
+    if (!isLiveStreaming || !onRefresh) return;
+    const interval = setInterval(() => {
+      onRefresh();
+    }, 12000);
+    return () => clearInterval(interval);
+  }, [isLiveStreaming, onRefresh]);
+
   const filteredLogs = useMemo(() => {
     return logList.filter((log) => {
-      if (levelFilter !== "All" && log.level !== levelFilter) return false;
-      if (platformFilter !== "All" && log.platform !== platformFilter) return false;
+      if (
+        levelFilter !== "All" &&
+        log.level?.toUpperCase() !== levelFilter.toUpperCase()
+      ) {
+        return false;
+      }
+      if (
+        platformFilter !== "All" &&
+        log.platform?.toLowerCase() !== platformFilter.toLowerCase()
+      ) {
+        return false;
+      }
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -80,7 +105,8 @@ export function ActivityLogsView({ logs = ACTIVITY_LOGS }) {
           {/* Live stream status */}
           <button
             onClick={() => setIsLiveStreaming(!isLiveStreaming)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-50 border border-slate-200 text-xs text-slate-700 hover:bg-slate-100"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-50 border border-slate-200 text-xs text-slate-700 hover:bg-slate-100 transition-colors"
+            title="Toggle periodic background log sync"
           >
             <span
               className={`w-2 h-2 rounded-full ${
@@ -89,6 +115,17 @@ export function ActivityLogsView({ logs = ACTIVITY_LOGS }) {
             />
             <span>{isLiveStreaming ? "Live Stream: Active" : "Stream: Paused"}</span>
           </button>
+
+          {onRefresh && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onRefresh}
+              icon={RotateCw}
+            >
+              Refresh
+            </Button>
+          )}
 
           <Button
             variant="secondary"
@@ -138,10 +175,11 @@ export function ActivityLogsView({ logs = ACTIVITY_LOGS }) {
             >
               <option value="All">All Channels</option>
               <option value="X">X (Twitter)</option>
+              <option value="Telegram">Telegram</option>
+              <option value="Notion">Notion</option>
               <option value="LinkedIn">LinkedIn</option>
               <option value="Instagram">Instagram</option>
               <option value="Slack">Slack</option>
-              <option value="Telegram">Telegram</option>
               <option value="Internal">Internal</option>
             </select>
 
@@ -178,17 +216,29 @@ export function ActivityLogsView({ logs = ACTIVITY_LOGS }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
-              {filteredLogs.map((log) => {
-                const isError = log.level === "ERROR";
-                const isWarn = log.level === "WARN";
+              {filteredLogs.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-8 font-sans">
+                    <EmptyState
+                      title="No activity logs found"
+                      description="Operational dispatches, API retries, and token health logs will display here."
+                      actionLabel="Refresh Logs"
+                      onAction={onRefresh}
+                    />
+                  </td>
+                </tr>
+              ) : (
+                filteredLogs.map((log, idx) => {
+                  const isError = log.level?.toUpperCase() === "ERROR";
+                  const isWarn = log.level?.toUpperCase() === "WARN";
 
-                return (
-                  <tr
-                    key={log.id}
-                    className={`hover:bg-slate-50 transition-colors ${
-                      isError ? "bg-rose-50/30" : isWarn ? "bg-amber-50/20" : ""
-                    }`}
-                  >
+                  return (
+                    <tr
+                      key={log.id || `log-${idx}-${log.timestamp}`}
+                      className={`hover:bg-slate-50 transition-colors ${
+                        isError ? "bg-rose-50/30" : isWarn ? "bg-amber-50/20" : ""
+                      }`}
+                    >
                     {/* Timestamp */}
                     <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
                       {log.timestamp}
@@ -241,7 +291,8 @@ export function ActivityLogsView({ logs = ACTIVITY_LOGS }) {
                     </td>
                   </tr>
                 );
-              })}
+              })
+            )}
             </tbody>
           </table>
         </div>
@@ -276,10 +327,10 @@ export function ActivityLogsView({ logs = ACTIVITY_LOGS }) {
                 <span className="text-slate-400">Account:</span> {inspectingLog.account}
               </div>
               <div>
-                <span className="text-slate-400">Latency:</span> {inspectingLog.latency || "82ms"}
+                <span className="text-slate-400">Latency:</span> {inspectingLog.latency || "—"}
               </div>
               <div>
-                <span className="text-slate-400">Trace ID:</span> trc_88921a9
+                <span className="text-slate-400">Trace ID:</span> {inspectingLog.traceId || inspectingLog.id || `trc_${inspectingLog.id?.slice(-8) || "live"}`}
               </div>
             </div>
 
@@ -288,26 +339,26 @@ export function ActivityLogsView({ logs = ACTIVITY_LOGS }) {
                 Event Message & Stack
               </label>
               <div className="bg-slate-900 text-slate-100 p-3.5 rounded font-mono text-xs overflow-x-auto whitespace-pre-wrap leading-relaxed">
-                {inspectingLog.message}
+                {inspectingLog.message || "No error stack or diagnostic message recorded."}
               </div>
             </div>
 
             <div>
               <label className="text-xs font-semibold text-slate-700 block mb-1">
-                HTTP Payload / Diagnostic Metadata
+                Diagnostic Metadata & Payload
               </label>
               <pre className="bg-slate-50 text-slate-800 p-3 rounded font-mono text-[11px] overflow-x-auto border border-slate-200">
 {JSON.stringify(
-  {
-    event: inspectingLog.action,
+  inspectingLog.metadata || {
+    id: inspectingLog.id,
+    action: inspectingLog.action,
     timestamp: inspectingLog.timestamp,
-    client: "Swytchcode-Node-SDK/1.4",
-    headers: {
-      "user-agent": "socialops-worker-daemon",
-      "x-swytchcode-workspace": "ws_acme_social_ops",
-      "x-forwarded-for": "10.240.0.1"
-    },
-    target: inspectingLog.post
+    platform: inspectingLog.platform,
+    account: inspectingLog.account,
+    target: inspectingLog.post,
+    status: inspectingLog.status,
+    level: inspectingLog.level,
+    ...(inspectingLog.latency ? { latency: inspectingLog.latency } : {}),
   },
   null,
   2

@@ -3,6 +3,7 @@ import youtubeDl from "youtube-dl-exec";
 import ffmpegPath from "ffmpeg-static";
 import path from "path";
 import fs from "fs";
+import config from "../config/env.js";
 
 const USED_SONGS_FILE = path.resolve("used", "used_songs.json");
 
@@ -122,7 +123,7 @@ export async function downloadYoutubeAudio(
   duration = 30,
 ) {
   const cleanUrl = cleanYouTubeUrl(url);
-  const downloadTimeoutMs = Number(process.env.YOUTUBE_DOWNLOAD_TIMEOUT_MS) || 120 * 1000;
+  const downloadTimeoutMs = config.media.youtube.downloadTimeoutMs;
 
   // Convert "HH:MM:SS" / "MM:SS" / seconds into total seconds for the section range
   const toSeconds = (t) => {
@@ -162,8 +163,8 @@ export async function downloadYoutubeAudio(
   };
 
   // Determine initial cookies strategy based on environment
-  const cookiesFromBrowser = process.env.YOUTUBE_COOKIES_FROM_BROWSER;
-  const envCookiesPath = process.env.YOUTUBE_COOKIES_FILE;
+  const cookiesFromBrowser = config.media.youtube.cookiesFromBrowser;
+  const envCookiesPath = config.media.youtube.cookiesFile;
 
   const initialCookieFlags = {};
   if (cookiesFromBrowser) {

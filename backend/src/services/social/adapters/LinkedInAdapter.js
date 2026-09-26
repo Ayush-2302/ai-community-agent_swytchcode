@@ -1,11 +1,12 @@
 import axios from "axios";
 import fs from "fs";
 import path from "path";
+import config from "../../../config/env.js";
 
 class LinkedInAdapter {
-  constructor() {
-    this.accessToken = process.env.LI_ACCESS_TOKEN;
-    this.authorUrn = process.env.LI_AUTHOR_URN;
+  constructor(credentials = {}) {
+    this.accessToken = credentials.accessToken || config.channels.linkedin.token2 || config.channels.linkedin.token1;
+    this.authorUrn = credentials.authorUrn || config.channels.linkedin.urn2 || config.channels.linkedin.urn1;
     this.baseUrl = "https://api.linkedin.com/v2";
   }
 
@@ -74,7 +75,6 @@ class LinkedInAdapter {
 
   /**
    * Detect MIME type based on file extension.
-   * LinkedIn is happier when you tell it what you're sending 🙂
    */
   detectMimeType(filePathOrUrl) {
     const ext = path.extname(filePathOrUrl).toLowerCase();
@@ -112,10 +112,10 @@ class LinkedInAdapter {
     await axios.put(uploadUrl, buffer, {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
-        "Content-Type": mimeType, // ✅ CRITICAL FIX
+        "Content-Type": mimeType,
         "Content-Length": buffer.length,
       },
-      transformRequest: [(data) => data], // ✅ Prevent axios mangling
+      transformRequest: [(data) => data],
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
       timeout: 120000,
@@ -131,12 +131,12 @@ class LinkedInAdapter {
       let media = [];
 
       if (mediaUrl) {
-        shareMediaCategory = "IMAGE"; // Extend later for video
+        shareMediaCategory = "IMAGE";
         const { uploadUrl, asset } = await this.registerUpload(true);
 
         await this.uploadMedia(uploadUrl, mediaUrl);
 
-        // Small delay so LinkedIn finishes processing the upload
+        // Allow LinkedIn processing delay
         await new Promise((resolve) => setTimeout(resolve, 3000));
 
         media.push({

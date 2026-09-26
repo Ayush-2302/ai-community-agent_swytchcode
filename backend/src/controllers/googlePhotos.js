@@ -1,25 +1,15 @@
 import axios from "axios";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-// const oauth2Client = new google.auth.OAuth2(
-//   process.env.GOOGLE_CLIENT_ID,
-//   process.env.GOOGLE_CLIENT_SECRET,
-//   process.env.GOOGLE_REDIRECT_URI
-// );
-
-// const googleResponse = await axios.get(
-//   `https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${token}`
-// );
+import config from "../config/env.js";
 
 export const getNewLoginUrl = () => {
+  const clientId = config.auth.googleClientId || "";
+  const redirectUri = config.auth.googleRedirectUri || "";
   const url =
     `https://accounts.google.com/o/oauth2/v2/auth?` +
     `scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fphotoslibrary.readonly` +
     `&response_type=code` +
-    `&client_id=${encodeURIComponent(process.env.GOOGLE_CLIENT_ID)}` +
-    `&redirect_uri=${encodeURIComponent(process.env.GOOGLE_REDIRECT_URI)}` +
+    `&client_id=${encodeURIComponent(clientId)}` +
+    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
     `&prompt=consent` +
     `&access_type=offline` +
     `&include_granted_scopes=true`;

@@ -601,10 +601,7 @@ class ImageProcessor {
       };
     }
 
-    // =========================
-    // CONTENT
-    // =========================
-
+    // Content formatting
     const maxChars = 48;
     const rawLines = text.split("\n");
     const wrappedText = [];
@@ -627,10 +624,8 @@ class ImageProcessor {
     }
 
     const wrappedTopic = this._wrapText(topicText, maxChars);
-    // =========================
-    // LAYOUT
-    // =========================
 
+    // Layout calculations
     const editorX = 80;
     const editorWidth = width - editorX * 2;
 
@@ -656,10 +651,7 @@ class ImageProcessor {
 
     const textColor = metadata.text_color || "#FFFFFF";
 
-    // =========================
-    // SVG
-    // =========================
-
+    // SVG rendering
     const svg = `
   <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
 

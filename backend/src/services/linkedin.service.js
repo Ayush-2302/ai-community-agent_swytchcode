@@ -1,14 +1,15 @@
 import axios from "axios";
 import fs from "fs";
+import config from "../config/env.js";
 
 export const LI_ACCOUNT_1 = {
-  token: process.env.LI_ACCESS_TOKEN1 || process.env.LI_ACCESS_TOKEN,
-  urn: process.env.LI_AUTHOR_URN1 || process.env.LI_AUTHOR_URN,
+  token: config.channels.linkedin.token1,
+  urn: config.channels.linkedin.urn1,
 };
 
 export const LI_ACCOUNT_2 = {
-  token: process.env.LI_ACCESS_TOKEN2,
-  urn: process.env.LI_AUTHOR_URN2,
+  token: config.channels.linkedin.token2,
+  urn: config.channels.linkedin.urn2,
 };
 
 export async function publishToLinkedIn(videoPath, caption, credentials = {}) {

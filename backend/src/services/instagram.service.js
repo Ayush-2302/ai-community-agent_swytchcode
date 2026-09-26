@@ -1,7 +1,8 @@
 import axios from "axios";
+import config from "../config/env.js";
 
 export async function publishReel(videoUrl, caption, pageId) {
-  const IG_TOKEN = process.env.IG_TOKEN;
+  const IG_TOKEN = config.channels.instagram.token;
   const GRAPH_BASE = "https://graph.facebook.com/v21.0";
 
   if (!pageId || !IG_TOKEN) {

@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import dotenv from "dotenv";
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
@@ -11,9 +10,9 @@ import {
   sendResetPasswordEmail,
   sendVerificationEmail,
 } from "../utils/nodemailer.js";
-dotenv.config();
+import config from "../config/env.js";
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = config.auth.googleClientId ? new OAuth2Client(config.auth.googleClientId) : null;
 
 const generateJwtToken = (user) => {
   return jwt.sign(
@@ -23,15 +22,18 @@ const generateJwtToken = (user) => {
       role: user.role,
       name: `${user.first_name} ${user.last_name}`,
     },
-    process.env.JWT_SECRET,
+    config.auth.jwtSecret,
     { expiresIn: "5h" }
   );
 };
 
 const handleGoogleAuth = async (token) => {
+  if (!client) {
+    throw new Error("Google OAuth2 is not configured. Missing GOOGLE_CLIENT_ID in environment.");
+  }
   const ticket = await client.verifyIdToken({
     idToken: token,
-    audience: process.env.GOOGLE_CLIENT_ID,
+    audience: config.auth.googleClientId,
   });
 
   const payload = ticket.getPayload();
@@ -171,7 +173,7 @@ export const forgotPassword = asyncWrapper(async (req, res) => {
   user.reset_password_expires = Date.now() + 3600000;
   await user.save();
 
-  const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+  const resetUrl = `${config.server.frontendUrl}/reset-password/${resetToken}`;
   await sendResetPasswordEmail(email, resetUrl);
 
   res.status(200).json({ message: "Reset email sent successfully." });

@@ -1,11 +1,12 @@
 import axios from "axios";
+import config from "../../../config/env.js";
 
 class SwytchcodeAdapter {
-  constructor(config = {}) {
-    this.apiKey = config.apiKey || process.env.SWYTCHCODE_API_KEY || "sc_live_948f20b33a149b71e84a2";
-    this.workspaceId = config.workspaceId || process.env.SWYTCHCODE_WORKSPACE_ID || "ws_acme_social_ops";
-    this.baseUrl = config.baseUrl || process.env.SWYTCHCODE_BASE_URL || "https://api.swytchcode.com/v1";
-    this.environment = config.environment || process.env.SWYTCHCODE_ENV || "sandbox";
+  constructor(customConfig = {}) {
+    this.apiKey = customConfig.apiKey || config.swytchcode.apiKey;
+    this.workspaceId = customConfig.workspaceId || config.swytchcode.workspaceId;
+    this.baseUrl = customConfig.baseUrl || config.swytchcode.baseUrl;
+    this.environment = customConfig.environment || config.swytchcode.environment;
   }
 
   getHeaders() {

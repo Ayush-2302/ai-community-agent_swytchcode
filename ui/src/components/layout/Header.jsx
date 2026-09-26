@@ -1,5 +1,6 @@
 import React from "react";
-import { Plus, Search, Menu, Cpu, Bell, CheckCircle2 } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Plus, Search, Menu, Cpu, Bell, CheckCircle2, Sparkles, Database } from "lucide-react";
 import { Button } from "../common/Button";
 
 export function Header({
@@ -7,19 +8,31 @@ export function Header({
   onOpenCreatePost,
   onToggleSidebar,
   automationStatus = "Running",
+  recordCount = 47,
+  isBackendConnected = true,
 }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const titles = {
-    dashboard: "Operations Dashboard",
-    posts: "Social Media Posts",
-    calendar: "Editorial Calendar",
-    queue: "Publishing Queue",
-    accounts: "Connected Accounts",
-    campaigns: "Campaign Management",
-    analytics: "Performance Analytics",
-    automation: "Node.js Automation Engine",
-    logs: "Operational Activity Logs",
-    settings: "Platform Settings",
+    "/": "Overview & Operations",
+    "/studio": "AI Creation Studio",
+    "/posts": "Content Feed & Posts",
+    "/calendar": "Editorial Calendar",
+    "/queue": "Publishing Queue",
+    "/accounts": "Connected Accounts",
+    "/campaigns": "Campaign Management",
+    "/analytics": "Performance Analytics",
+    "/automation": "Node.js Automation Daemon",
+    "/logs": "Operational Activity Logs",
+    "/settings": "Platform Settings",
   };
+
+  const activeTitle =
+    titles[location.pathname] ||
+    titles[`/${currentView}`] ||
+    titles[currentView] ||
+    "SocialOps Operations";
 
   return (
     <header className="sticky top-0 z-30 h-14 bg-white border-b border-slate-200 px-4 md:px-6 flex items-center justify-between gap-4">
@@ -38,7 +51,7 @@ export function Header({
             SocialOps /
           </span>
           <h1 className="text-sm md:text-base font-semibold text-slate-900 tracking-tight">
-            {titles[currentView] || "Operations"}
+            {activeTitle}
           </h1>
         </div>
       </div>
@@ -55,21 +68,26 @@ export function Header({
         </div>
       </div>
 
-      {/* Right: Automation status indicator & Create Post CTA */}
-      <div className="flex items-center gap-2.5">
-        {/* Node.js Automation status pill */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-50 border border-slate-200 text-xs">
-          <Cpu className="w-3.5 h-3.5 text-slate-500" />
-          <span className="text-slate-500 text-[11px]">Worker:</span>
-          <span className="inline-flex items-center gap-1 font-medium text-slate-700 text-[11px]">
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                automationStatus === "Running" ? "bg-emerald-500" : "bg-amber-500"
-              }`}
-            />
-            {automationStatus}
+      {/* Right: Live Status & CTAs */}
+      <div className="flex items-center gap-2 sm:gap-2.5">
+        {/* Subtle Database Status Pill */}
+        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-50 border border-slate-200 text-xs text-slate-600">
+          <Database className="w-3.5 h-3.5 text-slate-400" />
+          <span className="text-[11px] font-mono text-slate-700">
+            {recordCount} Records
           </span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
         </div>
+
+        {/* AI Studio Fast Navigation CTA */}
+        <button
+          type="button"
+          onClick={() => navigate("/studio")}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-md text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition-colors"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-violet-600" />
+          <span className="hidden md:inline">AI Studio</span>
+        </button>
 
         {/* Create Post Action Button */}
         <Button
@@ -77,8 +95,9 @@ export function Header({
           size="sm"
           onClick={onOpenCreatePost}
           icon={Plus}
+          className="text-xs"
         >
-          Create Post
+          <span className="hidden sm:inline">Create Post</span>
         </Button>
       </div>
     </header>

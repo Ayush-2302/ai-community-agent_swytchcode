@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   FileText,
@@ -14,56 +15,139 @@ import {
   Building2,
   CheckCircle2,
   ExternalLink,
+  Check,
+  LogOut,
+  Zap,
+  Sparkles,
 } from "lucide-react";
 
-export function Sidebar({ currentView, onViewChange, isOpen, onClose }) {
+export function Sidebar({
+  currentView,
+  onViewChange,
+  isOpen,
+  onClose,
+  counts = {},
+}) {
+  const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [selectedWorkspace, setSelectedWorkspace] = useState("AI Community Hub");
+
+  const workspaceRef = useRef(null);
+  const profileRef = useRef(null);
+
+  // Close popovers when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (workspaceRef.current && !workspaceRef.current.contains(event.target)) {
+        setIsWorkspaceMenuOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const workspaces = [
+    { id: "ws_prod", name: "AI Community Hub", env: "Production Workspace" },
+    { id: "ws_dev", name: "Developer Stream Lab", env: "Staging / Development" },
+  ];
+
   const navigationGroups = [
     {
       label: "MAIN",
       items: [
-        { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { id: "posts", label: "Posts", icon: FileText, count: 8 },
-        { id: "calendar", label: "Calendar", icon: Calendar },
-        { id: "queue", label: "Queue", icon: ListOrdered, count: 5 },
+        { id: "dashboard", label: "Dashboard", path: "/", icon: LayoutDashboard },
+        {
+          id: "studio",
+          label: "AI Studio",
+          path: "/studio",
+          icon: Sparkles,
+          badge: "Gemini",
+        },
+        {
+          id: "posts",
+          label: "Posts",
+          path: "/posts",
+          icon: FileText,
+          count: counts?.posts !== undefined ? counts.posts : null,
+        },
+        {
+          id: "queue",
+          label: "Queue",
+          path: "/queue",
+          icon: ListOrdered,
+          count: counts?.queue !== undefined ? counts.queue : null,
+        },
+        { id: "calendar", label: "Calendar", path: "/calendar", icon: Calendar },
       ],
     },
     {
       label: "MANAGEMENT",
       items: [
-        { id: "accounts", label: "Accounts", icon: Users2, count: 6 },
-        { id: "campaigns", label: "Campaigns", icon: FolderKanban },
-        { id: "analytics", label: "Analytics", icon: BarChart3 },
+        {
+          id: "accounts",
+          label: "Connected Accounts",
+          path: "/accounts",
+          icon: Users2,
+          count: counts?.accounts !== undefined ? counts.accounts : null,
+        },
+        { id: "campaigns", label: "Campaigns", path: "/campaigns", icon: FolderKanban },
+        { id: "analytics", label: "Analytics", path: "/analytics", icon: BarChart3 },
       ],
     },
     {
       label: "SYSTEM",
       items: [
-        { id: "automation", label: "Automation", icon: Cpu, badge: "Node.js" },
-        { id: "logs", label: "Activity Logs", icon: Terminal },
-        { id: "settings", label: "Settings", icon: Settings },
+        { id: "automation", label: "Automation", path: "/automation", icon: Cpu, badge: "Daemon" },
+        { id: "logs", label: "Activity Logs", path: "/logs", icon: Terminal },
+        { id: "settings", label: "Settings", path: "/settings", icon: Settings },
       ],
     },
   ];
+
+  const handleNavClick = (target) => {
+    setIsWorkspaceMenuOpen(false);
+    setIsProfileMenuOpen(false);
+    const item =
+      typeof target === "string"
+        ? { id: target, path: target === "dashboard" ? "/" : `/${target}` }
+        : target;
+    if (item.path) {
+      navigate(item.path);
+    }
+    if (onViewChange) {
+      onViewChange(item.id);
+    }
+    if (onClose) onClose();
+  };
 
   return (
     <>
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/40 md:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs md:hidden"
           onClick={onClose}
         />
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-40 w-60 bg-white border-r border-slate-200 flex flex-col transition-transform duration-200 ease-in-out md:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed top-0 bottom-0 left-0 z-50 w-60 bg-white border-r border-slate-200 flex flex-col transition-transform duration-200 ease-in-out md:translate-x-0 ${
+          isOpen ? "translate-x-0 shadow-2xl md:shadow-none" : "-translate-x-full"
         }`}
       >
         {/* Workspace Brand / Header */}
-        <div className="p-4 border-b border-slate-200 flex flex-col gap-3">
+        <div className="p-4 border-b border-slate-200 flex flex-col gap-3 relative" ref={workspaceRef}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
+            <div
+              className="flex items-center gap-2.5 cursor-pointer"
+              onClick={() => handleNavClick("dashboard")}
+            >
               <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center font-semibold text-xs tracking-wider">
                 SO
               </div>
@@ -81,21 +165,78 @@ export function Sidebar({ currentView, onViewChange, isOpen, onClose }) {
             </span>
           </div>
 
-          {/* Workspace selector */}
-          <button className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors text-left">
+          {/* Interactive Workspace selector dropdown trigger */}
+          <button
+            type="button"
+            onClick={() => setIsWorkspaceMenuOpen((prev) => !prev)}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors text-left cursor-pointer"
+          >
             <div className="flex items-center gap-2 truncate">
               <Building2 className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <div className="truncate">
                 <div className="text-xs font-medium text-slate-800 truncate">
-                  Acme Global Corp
+                  {selectedWorkspace}
                 </div>
                 <div className="text-[10px] text-slate-400 truncate">
                   Production Workspace
                 </div>
               </div>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-slate-400 shrink-0 ml-1 transition-transform ${
+                isWorkspaceMenuOpen ? "rotate-180" : ""
+              }`}
+            />
           </button>
+
+          {/* Workspace Dropdown Menu */}
+          {isWorkspaceMenuOpen && (
+            <div className="absolute top-[88px] left-4 right-4 z-50 bg-white border border-slate-200 rounded-lg shadow-lg p-1.5 space-y-1 text-xs animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-2 py-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                Select Workspace
+              </div>
+              {workspaces.map((ws) => (
+                <button
+                  key={ws.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedWorkspace(ws.name);
+                    setIsWorkspaceMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-2 py-1.5 rounded text-left transition-colors cursor-pointer ${
+                    selectedWorkspace === ws.name
+                      ? "bg-slate-100 text-slate-900 font-medium"
+                      : "text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="truncate">
+                    <div>{ws.name}</div>
+                    <div className="text-[10px] text-slate-400">{ws.env}</div>
+                  </div>
+                  {selectedWorkspace === ws.name && (
+                    <Check className="w-3.5 h-3.5 text-slate-900 shrink-0" />
+                  )}
+                </button>
+              ))}
+
+              <div className="border-t border-slate-100 my-1 pt-1">
+                <button
+                  type="button"
+                  onClick={() => handleNavClick("accounts")}
+                  className="w-full text-left px-2 py-1.5 text-[11px] text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded cursor-pointer"
+                >
+                  Manage Channels & Tokens
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleNavClick("settings")}
+                  className="w-full text-left px-2 py-1.5 text-[11px] text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded cursor-pointer"
+                >
+                  Workspace Settings
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Navigation list */}
@@ -107,15 +248,16 @@ export function Sidebar({ currentView, onViewChange, isOpen, onClose }) {
               </div>
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const isActive = currentView === item.id;
+                const isActive =
+                  location.pathname === item.path ||
+                  (item.path !== "/" && location.pathname.startsWith(item.path)) ||
+                  currentView === item.id;
                 return (
                   <button
                     key={item.id}
-                    onClick={() => {
-                      onViewChange(item.id);
-                      if (onClose) onClose();
-                    }}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors text-left select-none relative ${
+                    type="button"
+                    onClick={() => handleNavClick(item)}
+                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors text-left select-none relative cursor-pointer ${
                       isActive
                         ? "bg-slate-100 text-slate-900 font-semibold"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -133,7 +275,7 @@ export function Sidebar({ currentView, onViewChange, isOpen, onClose }) {
                       <span>{item.label}</span>
                     </div>
 
-                    {item.count !== undefined && (
+                    {item.count !== null && item.count !== undefined && (
                       <span
                         className={`text-[10px] px-1.5 py-0.5 rounded ${
                           isActive
@@ -158,39 +300,82 @@ export function Sidebar({ currentView, onViewChange, isOpen, onClose }) {
         </nav>
 
         {/* Integration Status & User profile */}
-        <div className="p-3 border-t border-slate-200 bg-slate-50/50 space-y-3">
+        <div className="p-3 border-t border-slate-200 bg-slate-50/50 space-y-3 relative" ref={profileRef}>
           {/* Swytchcode connector pill */}
-          <div className="flex items-center justify-between px-2 py-1.5 rounded bg-emerald-50/80 border border-emerald-200/80 text-[11px] text-emerald-800">
+          <div
+            onClick={() => handleNavClick("accounts")}
+            className="flex items-center justify-between px-2 py-1.5 rounded bg-emerald-50/80 border border-emerald-200/80 text-[11px] text-emerald-800 cursor-pointer hover:bg-emerald-100/60 transition-colors"
+            title="Click to view connected platforms"
+          >
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span className="font-medium">Swytchcode API Live</span>
             </div>
-            <span className="text-[10px] text-emerald-600 font-mono">99.4%</span>
+            <span className="text-[10px] text-emerald-600 font-mono">Connected</span>
           </div>
 
-          {/* User profile */}
+          {/* User profile with interactive trigger */}
           <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-medium text-xs">
-                AC
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold text-slate-800 leading-tight">
-                  Alex Chen
-                </span>
-                <span className="text-[11px] text-slate-400">
-                  Lead Social Operator
-                </span>
-              </div>
-            </div>
             <button
-              onClick={() => onViewChange("settings")}
-              className="text-slate-400 hover:text-slate-600 p-1 rounded"
+              type="button"
+              onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+              className="flex items-center gap-2.5 text-left flex-1 min-w-0 hover:opacity-80 transition-opacity cursor-pointer"
+            >
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-xs shrink-0">
+                AK
+              </div>
+              <div className="flex flex-col truncate">
+                <span className="text-xs font-semibold text-slate-800 leading-tight truncate">
+                  Ayush Kumar
+                </span>
+                <span className="text-[11px] text-slate-400 truncate">
+                  ayushkumarakt@gmail.com
+                </span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleNavClick("settings")}
+              className="text-slate-400 hover:text-slate-600 p-1.5 rounded hover:bg-slate-100 cursor-pointer"
               title="Settings"
             >
               <Settings className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Profile Popover Menu */}
+          {isProfileMenuOpen && (
+            <div className="absolute bottom-[60px] left-3 right-3 z-50 bg-white border border-slate-200 rounded-lg shadow-lg p-2 space-y-1 text-xs animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-2 py-1 border-b border-slate-100 pb-1.5 mb-1">
+                <div className="font-semibold text-slate-900">Ayush Kumar</div>
+                <div className="text-[10px] text-slate-500 font-mono truncate">ayushkumarakt@gmail.com</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleNavClick("settings")}
+                className="w-full text-left px-2 py-1.5 text-slate-700 hover:bg-slate-50 rounded flex items-center gap-2 cursor-pointer"
+              >
+                <Settings className="w-3.5 h-3.5 text-slate-400" />
+                Settings & API Keys
+              </button>
+              <button
+                type="button"
+                onClick={() => handleNavClick("logs")}
+                className="w-full text-left px-2 py-1.5 text-slate-700 hover:bg-slate-50 rounded flex items-center gap-2 cursor-pointer"
+              >
+                <Terminal className="w-3.5 h-3.5 text-slate-400" />
+                Audit Logs & Traces
+              </button>
+              <button
+                type="button"
+                onClick={() => handleNavClick("automation")}
+                className="w-full text-left px-2 py-1.5 text-slate-700 hover:bg-slate-50 rounded flex items-center gap-2 cursor-pointer"
+              >
+                <Zap className="w-3.5 h-3.5 text-slate-400" />
+                Daemon Automation
+              </button>
+            </div>
+          )}
         </div>
       </aside>
     </>

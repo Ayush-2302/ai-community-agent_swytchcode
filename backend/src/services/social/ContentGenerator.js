@@ -7,14 +7,15 @@ import { fileURLToPath } from "url";
 import imagekit from "../../config/imagekit.js";
 import ImageSearchService from "../image/ImageSearchService.js";
 import ImageProcessor from "../image/ImageProcessor.js";
+import config from "../../config/env.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 class ContentGenerator {
   constructor() {
-    this.apiKey = process.env.GEMINI_API_KEY;
+    this.apiKey = config.ai.geminiApiKey;
     if (!this.apiKey) {
-      console.warn("GEMINI_API_KEY not set");
+      console.warn("GEMINI_API_KEY not configured");
     }
 
     // Initialize GoogleGenAI client
@@ -266,7 +267,7 @@ Generate the JSON now.`;
   }
 
   async uploadFile(filePath) {
-    if (!process.env.IMAGEKIT_PUBLIC_KEY) {
+    if (!config.media.imagekit.publicKey) {
       console.warn("ImageKit keys missing, skipping upload.");
       return null;
     }
@@ -291,7 +292,7 @@ Generate the JSON now.`;
   }
 
   async generateImage(topic) {
-    if (!process.env.IMAGEKIT_PUBLIC_KEY) {
+    if (!config.media.imagekit.publicKey) {
       console.warn("ImageKit keys missing, skipping image generation.");
       return null;
     }
@@ -372,17 +373,15 @@ Generate the JSON now.`;
       throw new Error("All image providers failed.");
     }
 
-    // APPLY VISUAL PROCESSING (Portrait, Square-tiling, Text)
+    // Apply visual processing
     try {
-      // Pick a random caption for the musing if possible
-      const musingText = topic; // Default to topic as the core musing
+      const musingText = topic;
       imageBuffer = await ImageProcessor.processMusingImage(imageBuffer, musingText, topic);
     } catch (e) {
       console.error("Failed to apply visual styling:", e.message);
-      // Proceed with original buffer if styling fails
     }
 
-    // 4️⃣ Upload to ImageKit
+    // Upload to ImageKit
     try {
       const fileObj = await toFile(imageBuffer, `gen_${Date.now()}.jpg`);
 

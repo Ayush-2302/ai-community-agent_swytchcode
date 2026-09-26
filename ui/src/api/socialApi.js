@@ -1,37 +1,63 @@
-let API_BASE_URL = "http://localhost:3000/api/social";
+import axios from "axios";
+import env from "../config/env";
 
-// Detect whether backend is running on port 3000 (processImages) or 8000 (portfolio_b)
-async function detectActiveBaseUrl() {
-  const candidates = [
-    "http://localhost:3000/api/social",
-    "http://localhost:8000/api/social",
-  ];
-  for (const url of candidates) {
+// Validated environment-driven API configuration
+const API_URL = env.api.baseUrl;
+const REQUEST_TIMEOUT = env.api.timeout;
+
+// Axios Client instance
+export const apiClient = axios.create({
+  baseURL: API_URL,
+  timeout: REQUEST_TIMEOUT,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+});
+
+// Returns the validated active API base URL
+export async function getBaseUrl() {
+  return API_URL;
+}
+
+// Request interceptor ensuring standard base URL
+apiClient.interceptors.request.use((config) => {
+  config.baseURL = API_URL;
+  return config;
+});
+
+// Helper to safely extract string text from any value (string, nested {caption}, etc.)
+export function extractText(val) {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  if (typeof val === "object") {
+    if (typeof val.caption === "string") return val.caption;
+    if (typeof val.text === "string") return val.text;
+    if (typeof val.content === "string") return val.content;
+    if (typeof val.title === "string") return val.title;
+    if (typeof val.topic === "string") return val.topic;
+    if (typeof val.message === "string") return val.message;
+    if (val.caption && typeof val.caption === "object") return extractText(val.caption);
     try {
-      const res = await fetch(`${url}/automation/status`, { signal: AbortSignal.timeout(1200) });
-      if (res.ok) {
-        API_BASE_URL = url;
-        return url;
-      }
-    } catch (e) {
-      // try next
+      return JSON.stringify(val);
+    } catch {
+      return "";
     }
   }
-  return API_BASE_URL;
+  return String(val);
 }
-detectActiveBaseUrl();
-
 
 // Helper to normalize MongoDB post document into UI format
 export function normalizePost(doc) {
   if (!doc) return null;
   const id = doc._id ? doc._id.toString() : doc.id;
-  const platform = Array.isArray(doc.platforms) && doc.platforms.length > 0
-    ? doc.platforms[0].charAt(0).toUpperCase() + doc.platforms[0].slice(1)
-    : "X";
+  const platform =
+    Array.isArray(doc.platforms) && doc.platforms.length > 0
+      ? doc.platforms[0].charAt(0).toUpperCase() + doc.platforms[0].slice(1)
+      : "X";
 
   // Pick first available caption or content
-  let bodyContent = doc.content || "";
+  let bodyContent = doc.content;
   if (!bodyContent && doc.captions) {
     bodyContent =
       doc.captions.x ||
@@ -39,8 +65,27 @@ export function normalizePost(doc) {
       doc.captions.instagram ||
       doc.captions.telegram ||
       doc.captions.slack ||
+      doc.captions.notion ||
       doc.topic ||
       "";
+  }
+
+  const cleanContent = extractText(bodyContent);
+  const cleanTitle = extractText(doc.title || doc.topic || "Untitled Post");
+  const cleanTopic = extractText(doc.topic || doc.title || "Social Post");
+
+  // Filter out unreachable local file paths (file:///D:/... or D:\...)
+  let cleanMediaUrl = doc.mediaUrl || null;
+  if (
+    cleanMediaUrl &&
+    (cleanMediaUrl.startsWith("file://") ||
+      /^[a-zA-Z]:[\\/]/.test(cleanMediaUrl) ||
+      cleanMediaUrl.startsWith("/Users/") ||
+      cleanMediaUrl.startsWith("/home/"))
+  ) {
+    if (!cleanMediaUrl.startsWith("http://") && !cleanMediaUrl.startsWith("https://") && !cleanMediaUrl.startsWith("data:")) {
+      cleanMediaUrl = null;
+    }
   }
 
   // Normalize status
@@ -55,44 +100,41 @@ export function normalizePost(doc) {
   return {
     id,
     _id: id,
-    title: doc.title || doc.topic || "Untitled Post",
-    topic: doc.topic || doc.title,
-    content: bodyContent,
+    title: cleanTitle,
+    topic: cleanTopic,
+    content: cleanContent,
     platform,
     platforms: doc.platforms || [platform.toLowerCase()],
-    account: doc.account || "@acme_eng",
+    account: extractText(doc.account) || "@developer_stream",
     scheduledAt: doc.scheduledAt ? new Date(doc.scheduledAt).toISOString() : new Date().toISOString(),
     status: normStatus,
-    campaign: doc.campaign || "General",
-    mediaUrl: doc.mediaUrl || null,
-    tags: doc.tags || [],
+    campaign: extractText(doc.campaign) || "General",
+    mediaUrl: cleanMediaUrl,
+    tags: Array.isArray(doc.tags) ? doc.tags.map(extractText) : [],
     views: doc.views || 0,
     likes: doc.likes || 0,
     reposts: doc.reposts || 0,
-    failureReason: doc.failureReason || null,
+    failureReason: extractText(doc.failureReason) || null,
     createdAt: doc.createdAt || new Date().toISOString(),
   };
 }
 
 export const socialApi = {
-  // Fetch all posts from MongoDB collection
+  // Fetch all posts from MongoDB collection using axios
   async getPosts() {
     try {
-      const res = await fetch(`${API_BASE_URL}`, {
-        headers: { "Content-Type": "application/json" },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const rawList = data.posts || [];
+      const res = await apiClient.get("/");
+      if (res.data && res.data.success) {
+        const rawList = res.data.posts || [];
         return rawList.map(normalizePost);
       }
     } catch (err) {
-      console.warn("[socialApi] Backend getPosts failed, using fallback:", err.message);
+      console.warn("[socialApi] Axios getPosts failed:", err.message);
     }
     return null;
   },
 
-  // Create post directly into MongoDB
+  // Create post directly into MongoDB using axios
   async createPost(postData) {
     try {
       const payload = {
@@ -110,81 +152,59 @@ export const socialApi = {
         queueOrder: postData.queueOrder || 0,
       };
 
-      const res = await fetch(`${API_BASE_URL}/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        return normalizePost(data.post);
+      const res = await apiClient.post("/create", payload);
+      if (res.data && res.data.success) {
+        return normalizePost(res.data.post);
       }
     } catch (err) {
-      console.warn("[socialApi] createPost failed:", err.message);
+      console.warn("[socialApi] Axios createPost failed:", err.message);
     }
     return null;
   },
 
-  // Update existing post in MongoDB
+  // Update existing post in MongoDB using axios
   async updatePost(id, updateData) {
     try {
-      const res = await fetch(`${API_BASE_URL}/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updateData),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        return normalizePost(data.post);
+      const res = await apiClient.put(`/${id}`, updateData);
+      if (res.data && res.data.success) {
+        return normalizePost(res.data.post);
       }
     } catch (err) {
-      console.warn("[socialApi] updatePost failed:", err.message);
+      console.warn("[socialApi] Axios updatePost failed:", err.message);
     }
     return null;
   },
 
-  // Delete post from MongoDB
+  // Delete post from MongoDB using axios
   async deletePost(id) {
     try {
-      const res = await fetch(`${API_BASE_URL}/${id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (res.ok) {
-        return true;
-      }
+      const res = await apiClient.delete(`/${id}`);
+      return Boolean(res.data && res.data.success);
     } catch (err) {
-      console.warn("[socialApi] deletePost failed:", err.message);
+      console.warn("[socialApi] Axios deletePost failed:", err.message);
     }
     return false;
   },
 
-  // Publish post immediately
+  // Publish post immediately using axios
   async publishNow(id, platform = null) {
     try {
-      const res = await fetch(`${API_BASE_URL}/publish/${id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ platform }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        return data.post;
+      const res = await apiClient.post(`/publish/${id}`, { platform });
+      if (res.data && res.data.success) {
+        return res.data.post;
       }
     } catch (err) {
-      console.warn("[socialApi] publishNow failed:", err.message);
+      console.warn("[socialApi] Axios publishNow failed:", err.message);
     }
     return null;
   },
 
-  // Fetch queue from backend
+  // Fetch queue from backend using axios
   async getQueue() {
     try {
-      const res = await fetch(`${API_BASE_URL}/queue`);
-      if (res.ok) {
-        const data = await res.json();
-        return (data.queue || []).map((doc, idx) => {
+      const res = await apiClient.get("/queue");
+      if (res.data && res.data.success) {
+        return (res.data.queue || []).map((doc, idx) => {
           const norm = normalizePost(doc);
           return {
             ...norm,
@@ -198,110 +218,176 @@ export const socialApi = {
         });
       }
     } catch (err) {
-      console.warn("[socialApi] getQueue failed:", err.message);
+      console.warn("[socialApi] Axios getQueue failed:", err.message);
     }
     return null;
   },
 
-  // Reorder queue in backend
+  // Reorder queue in backend using axios
   async reorderQueue(orderedIds) {
     try {
-      const res = await fetch(`${API_BASE_URL}/queue/reorder`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderedIds }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        return (data.queue || []).map(normalizePost);
+      const res = await apiClient.put("/queue/reorder", { orderedIds });
+      if (res.data && res.data.success) {
+        return (res.data.queue || []).map(normalizePost);
       }
     } catch (err) {
-      console.warn("[socialApi] reorderQueue failed:", err.message);
+      console.warn("[socialApi] Axios reorderQueue failed:", err.message);
     }
     return null;
   },
 
-  // Fetch live analytics aggregated from MongoDB
+  // Fetch live analytics aggregated from MongoDB using axios
   async getAnalytics() {
     try {
-      const res = await fetch(`${API_BASE_URL}/analytics`);
-      if (res.ok) {
-        const data = await res.json();
-        return data.analytics;
+      const res = await apiClient.get("/analytics");
+      if (res.data && res.data.success) {
+        return res.data.analytics;
       }
     } catch (err) {
-      console.warn("[socialApi] getAnalytics failed:", err.message);
+      console.warn("[socialApi] Axios getAnalytics failed:", err.message);
     }
     return null;
   },
 
-  // Fetch accounts connected in backend
+  // Fetch accounts connected in backend using axios
   async getAccounts() {
     try {
-      const res = await fetch(`${API_BASE_URL}/accounts`);
-      if (res.ok) {
-        const data = await res.json();
-        return data.accounts;
+      const res = await apiClient.get("/accounts");
+      if (res.data && res.data.success) {
+        return res.data.accounts;
       }
     } catch (err) {
-      console.warn("[socialApi] getAccounts failed:", err.message);
+      console.warn("[socialApi] Axios getAccounts failed:", err.message);
     }
     return null;
   },
 
-  // Fetch campaigns from backend
+  // Connect account in backend
+  async connectAccount(data) {
+    try {
+      const res = await apiClient.post("/accounts/connect", data);
+      return res.data;
+    } catch (err) {
+      console.warn("[socialApi] Axios connectAccount failed:", err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // Disconnect / delete account from backend
+  async deleteAccount(id) {
+    try {
+      const res = await apiClient.delete(`/accounts/${id}`);
+      return res.data;
+    } catch (err) {
+      console.warn("[socialApi] Axios deleteAccount failed:", err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // Sync account in backend
+  async syncAccount(id) {
+    try {
+      const res = await apiClient.post(`/accounts/${id}/sync`);
+      return res.data;
+    } catch (err) {
+      console.warn("[socialApi] Axios syncAccount failed:", err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // Fetch campaigns from backend using axios
   async getCampaigns() {
     try {
-      const res = await fetch(`${API_BASE_URL}/campaigns`);
-      if (res.ok) {
-        const data = await res.json();
-        return data.campaigns;
+      const res = await apiClient.get("/campaigns");
+      if (res.data && res.data.success) {
+        return res.data.campaigns;
       }
     } catch (err) {
-      console.warn("[socialApi] getCampaigns failed:", err.message);
+      console.warn("[socialApi] Axios getCampaigns failed:", err.message);
     }
     return null;
   },
 
-  // Fetch operational logs from backend
+  // Fetch operational logs from backend using axios
   async getLogs() {
     try {
-      const res = await fetch(`${API_BASE_URL}/logs`);
-      if (res.ok) {
-        const data = await res.json();
-        return data.logs;
+      const res = await apiClient.get("/logs");
+      if (res.data && res.data.success) {
+        return res.data.logs;
       }
     } catch (err) {
-      console.warn("[socialApi] getLogs failed:", err.message);
+      console.warn("[socialApi] Axios getLogs failed:", err.message);
     }
     return null;
   },
 
-  // Automation Daemon Status
+  // Automation Daemon Status using axios
   async getAutomationStatus() {
     try {
-      const res = await fetch(`${API_BASE_URL}/automation/status`);
-      if (res.ok) {
-        const data = await res.json();
-        return data.daemon;
+      const res = await apiClient.get("/automation/status");
+      if (res.data && res.data.success) {
+        return res.data.daemon;
       }
     } catch (err) {
-      console.warn("[socialApi] getAutomationStatus failed:", err.message);
+      console.warn("[socialApi] Axios getAutomationStatus failed:", err.message);
     }
     return null;
   },
 
-  // Swytchcode Health Check
+  // Swytchcode Health Check using axios
   async testSwytchcode(provider = null) {
     try {
-      const res = await fetch(`${API_BASE_URL}/swytchcode/health${provider ? `?provider=${provider}` : ""}`);
-      if (res.ok) {
-        const data = await res.json();
-        return data.health;
+      const res = await apiClient.get(`/swytchcode/health${provider ? `?provider=${provider}` : ""}`);
+      if (res.data && res.data.success) {
+        return res.data.health;
       }
     } catch (err) {
-      console.warn("[socialApi] testSwytchcode failed:", err.message);
+      console.warn("[socialApi] Axios testSwytchcode failed:", err.message);
     }
     return null;
+  },
+
+  // Swytchcode Multi-Channel Omni-Publish (X, Telegram, Notion)
+  async omniPublish(data) {
+    try {
+      const res = await apiClient.post("/omni-publish", data);
+      return res.data;
+    } catch (err) {
+      console.warn("[socialApi] Axios omniPublish failed:", err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // AI Studio: Gemini Multi-Platform Generation
+  async generateAiContent(topic, tone = "Insightful & Professional") {
+    try {
+      const res = await apiClient.post("/ai/generate", { topic, tone });
+      return res.data;
+    } catch (err) {
+      console.warn("[socialApi] Axios generateAiContent failed:", err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // AI Studio: Visual Media Search
+  async searchAiMedia(query = "technology") {
+    try {
+      const res = await apiClient.get(`/ai/media?query=${encodeURIComponent(query)}`);
+      return res.data;
+    } catch (err) {
+      console.warn("[socialApi] Axios searchAiMedia failed:", err.message);
+      return { success: false, items: [] };
+    }
+  },
+
+  // AI Studio: Background Audio & Tracks Search
+  async searchAiMusic(query = "") {
+    try {
+      const res = await apiClient.get(`/ai/music${query ? `?query=${encodeURIComponent(query)}` : ""}`);
+      return res.data;
+    } catch (err) {
+      console.warn("[socialApi] Axios searchAiMusic failed:", err.message);
+      return { success: false, tracks: [] };
+    }
   },
 };

@@ -7,17 +7,18 @@ import { PlatformIcon } from "../common/PlatformIcon";
 import { RealisticPlatformPreview } from "./RealisticPlatformPreview";
 import { useToast } from "../common/Toast";
 import { swytchcode } from "../../services/swytchcode";
+import { socialApi } from "../../api/socialApi";
 import { Image, Calendar, Clock, Layers, Sparkles, Send, Globe, Upload } from "lucide-react";
 
 export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = null }) {
   const { addToast } = useToast();
 
   const [selectedPlatforms, setSelectedPlatforms] = useState(["X"]);
-  const [selectedAccount, setSelectedAccount] = useState("@acme_eng");
+  const [selectedAccount, setSelectedAccount] = useState("@developer_stream");
   const [content, setContent] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
-  const [campaign, setCampaign] = useState("Q3 Engineering");
-  const [tags, setTags] = useState("Engineering, DevOps");
+  const [campaign, setCampaign] = useState("Developer Community");
+  const [tags, setTags] = useState("AI, Developer, Swytchcode");
   const [schedulingMode, setSchedulingMode] = useState(initialDate ? "schedule" : "queue"); // 'now' | 'schedule' | 'queue'
   const [scheduleDate, setScheduleDate] = useState(
     initialDate || new Date().toISOString().split("T")[0]
@@ -28,11 +29,12 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const availablePlatforms = [
-    { id: "X", label: "X (Twitter)", limit: 280, defaultAccount: "@acme_eng" },
-    { id: "LinkedIn", label: "LinkedIn", limit: 3000, defaultAccount: "Acme Cloud Technologies" },
-    { id: "Instagram", label: "Instagram", limit: 2200, defaultAccount: "@acmelabs" },
-    { id: "Facebook", label: "Facebook", limit: 5000, defaultAccount: "Acme Official Page" },
-    { id: "Telegram", label: "Telegram", limit: 4096, defaultAccount: "Acme Dev Channel" },
+    { id: "X", label: "X (Twitter)", limit: 280, defaultAccount: "@developer_stream" },
+    { id: "Telegram", label: "Telegram", limit: 4096, defaultAccount: "Chat ID: 8330458164 (@BeingA_07)" },
+    { id: "Notion", label: "Notion", limit: 2000, defaultAccount: "Notion AI Community Hub" },
+    { id: "LinkedIn", label: "LinkedIn", limit: 3000, defaultAccount: "dotenvcoder" },
+    { id: "Instagram", label: "Instagram", limit: 2200, defaultAccount: "kanhacode" },
+    { id: "Facebook", label: "Facebook", limit: 5000, defaultAccount: "Facebook Page" },
     { id: "Slack", label: "Slack", limit: 4000, defaultAccount: "#announcements" },
   ];
 
@@ -110,25 +112,30 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
         createdAt: new Date().toISOString(),
       };
 
-      // Dispatch via Swytchcode connector if publishing immediately
+      // Dispatch via Swytchcode multi-channel runtime if publishing immediately
+      let publishResults = null;
       if (schedulingMode === "now" && !isDraft) {
-        await swytchcode.dispatchPost({
-          platform: selectedPlatforms[0],
-          content,
-          mediaUrl,
-          accountHandle: selectedAccount,
-        });
+        try {
+          publishResults = await socialApi.omniPublish({
+            content,
+            platforms: selectedPlatforms,
+            mediaUrl,
+          });
+        } catch (publishErr) {
+          console.warn("[CreatePostModal] OmniPublish error:", publishErr);
+        }
       }
 
       onPostCreated(newPost);
 
+      const targetList = selectedPlatforms.join(", ");
       addToast({
         type: "success",
         title: isDraft ? "Draft Saved" : schedulingMode === "now" ? "Post Dispatched" : "Post Scheduled",
         message: isDraft
           ? "Post has been saved to your drafts."
           : schedulingMode === "now"
-          ? `Dispatched successfully to ${selectedPlatforms.join(", ")} via Swytchcode.`
+          ? `Dispatched successfully to ${targetList} via Swytchcode live runtime.`
           : `Post scheduled for ${new Date(scheduledIso).toLocaleDateString()} at ${scheduleTime}.`,
       });
 
@@ -188,7 +195,7 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
             <label className="text-xs font-semibold text-slate-700 block mb-1.5">
               Target Platforms
             </label>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+            <div className="flex flex-wrap gap-1.5">
               {availablePlatforms.map((p) => {
                 const isSelected = selectedPlatforms.includes(p.id);
                 return (
@@ -196,7 +203,7 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
                     key={p.id}
                     type="button"
                     onClick={() => togglePlatform(p.id)}
-                    className={`flex flex-col items-center justify-center p-2 rounded-md border text-xs transition-all ${
+                    className={`flex flex-col items-center justify-center p-2 rounded-md border text-xs transition-all flex-1 min-w-[64px] ${
                       isSelected
                         ? "bg-slate-900 border-slate-900 text-white font-medium shadow-none"
                         : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
@@ -217,11 +224,11 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
               value={selectedAccount}
               onChange={(e) => setSelectedAccount(e.target.value)}
               options={[
-                { value: "@acme_eng", label: "Acme Engineering (@acme_eng)" },
-                { value: "Acme Cloud Technologies", label: "Acme Cloud Technologies (LinkedIn)" },
-                { value: "@acmelabs", label: "Acme Labs (@acmelabs)" },
-                { value: "Acme Official Page", label: "Acme Official Page (Facebook)" },
-                { value: "Acme Dev Channel", label: "Acme Dev Channel (Telegram)" },
+                { value: "@developer_stream", label: "X (Twitter) - @developer_stream" },
+                { value: "Chat ID: 8330458164", label: "Telegram - @BeingA_07 (8330458164)" },
+                { value: "Notion AI Community Hub", label: "Notion - AI Community Hub" },
+                { value: "dotenvcoder", label: "LinkedIn - dotenvcoder" },
+                { value: "kanhacode", label: "Instagram - kanhacode" },
                 { value: "#announcements", label: "Announcements (#announcements)" },
               ]}
             />
@@ -351,7 +358,7 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
             </div>
 
             {schedulingMode === "schedule" && (
-              <div className="grid grid-cols-3 gap-3 p-3 bg-slate-50 rounded-md border border-slate-200 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-md border border-slate-200 text-xs">
                 <Input
                   label="Date"
                   type="date"

@@ -1,17 +1,21 @@
 import { TwitterApi } from "twitter-api-v2";
 import fs from "fs";
+import config from "../config/env.js";
 
 export async function publishToX(videoPath, caption) {
-  const client = new TwitterApi({
-    appKey: process.env.X_API_KEY,
-    appSecret: process.env.X_API_SECRET,
-    accessToken: process.env.X_ACCESS_TOKEN,
-    accessSecret: process.env.X_ACCESS_SECRET,
-  });
+  const { apiKey, apiSecret, accessToken, accessSecret } = config.channels.x;
 
-  if (!process.env.X_API_KEY) {
+  if (!apiKey || !apiSecret || !accessToken || !accessSecret) {
+    console.warn("[X] Credentials not configured. Skipping publish.");
     return;
   }
+
+  const client = new TwitterApi({
+    appKey: apiKey,
+    appSecret: apiSecret,
+    accessToken: accessToken,
+    accessSecret: accessSecret,
+  });
 
   try {
     const mediaId = await client.v1.uploadMedia(videoPath);

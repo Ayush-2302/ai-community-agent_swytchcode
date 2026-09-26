@@ -99,7 +99,7 @@ const SocialPostSchema = new mongoose.Schema(
     },
     account: {
       type: String,
-      default: "@acme_eng",
+      default: "@developer_stream",
     },
     tags: [
       {

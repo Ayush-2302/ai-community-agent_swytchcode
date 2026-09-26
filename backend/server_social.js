@@ -1,7 +1,7 @@
-import "dotenv/config";
+import config from "./src/config/env.js";
 import connectToMongoDB from "./src/db/dbConfig.js";
 
-const port = process.env.PORT || 8000;
+const port = config.server.port;
 
 async function startServer() {
   await connectToMongoDB();
@@ -12,11 +12,8 @@ async function startServer() {
   await seedSocialPostsIfEmpty();
   cronScheduler.start();
   app.listen(port, () => {
-    console.log(`[SocialOps Server] Listening on port ${port}`);
+    console.log(`[SocialOps Server] Listening on port ${port} (${config.server.env})`);
   });
 }
 
 startServer();
-
-
-

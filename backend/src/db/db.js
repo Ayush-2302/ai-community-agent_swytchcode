@@ -1,18 +1,19 @@
 import mysql from "mysql2/promise";
-import dotenv from "dotenv";
+import config from "../config/env.js";
 
-dotenv.config();
+let pool = null;
 
-const createConnection = async () => {
+export const getConnection = async () => {
+  if (pool) return pool;
   try {
-    const pool = await mysql.createPool({
-      host: process.env.DB_HOST,
+    pool = await mysql.createPool({
+      host: process.env.DB_HOST || "localhost",
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      port: process.env.DB_PORT,
+      port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306,
     });
-    console.log("Connected to the database");
+    console.log("Connected to the MySQL database");
     return pool;
   } catch (error) {
     console.error("Error connecting to the database:", error);
@@ -20,6 +21,4 @@ const createConnection = async () => {
   }
 };
 
-const connection = await createConnection();
-
-export default connection;
+export default getConnection;

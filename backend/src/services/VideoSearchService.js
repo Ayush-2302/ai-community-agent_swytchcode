@@ -1,9 +1,10 @@
 import axios from "axios";
 import fs from "fs";
 import path from "path";
+import config from "../config/env.js";
 
 const USED_VIDEOS_FILE = path.resolve("used", "used_videos.json");
-const PIXABAY_API_KEY = process.env.PIXABAY_API_KEY;
+const PIXABAY_API_KEY = config.media.pixabayApiKey;
 
 function loadUsedVideos() {
   try {

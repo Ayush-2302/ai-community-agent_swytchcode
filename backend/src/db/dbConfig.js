@@ -1,8 +1,6 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import dns from "dns";
-
-dotenv.config();
+import config from "../config/env.js";
 
 try {
   dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
@@ -10,7 +8,7 @@ try {
   // Ignore if unsupported
 }
 
-const uri = process.env.MONGODB_URI;
+const uri = config.database.uri;
 
 const connectToMongoDB = async () => {
   if (mongoose.connection.readyState === 1) {
@@ -35,5 +33,3 @@ mongoose.connection.on("disconnected", () => console.warn("[Mongoose] Status: Di
 mongoose.connection.on("error", (err) => console.error("[Mongoose] Error:", err.message));
 
 export default connectToMongoDB;
-
-

@@ -11,6 +11,7 @@ import {
   Play,
   RotateCcw,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import { Card, CardHeader } from "../components/common/Card";
 import { Button } from "../components/common/Button";
@@ -21,13 +22,53 @@ export function DashboardView({
   posts = [],
   queue = [],
   logs = [],
+  analytics = null,
   onNavigate,
   onOpenCreatePost,
 }) {
-  const scheduledCount = posts.filter((p) => p.status === "Scheduled").length;
-  const publishedCount = posts.filter((p) => p.status === "Published").length + 342;
-  const failedCount = posts.filter((p) => p.status === "Failed").length;
-  const pendingCount = posts.filter((p) => p.status === "Pending Review").length;
+  const scheduledCount = posts.filter((p) => p.status === "Scheduled" || p.status === "SCHEDULED").length;
+  const publishedCount = analytics?.publishedCount ?? posts.filter((p) => p.status === "Published" || p.status === "PUBLISHED").length;
+  const failedCount = posts.filter((p) => p.status === "Failed" || p.status === "FAILED").length;
+  const pendingCount = posts.filter((p) => p.status === "Pending Review" || p.status === "PENDING" || p.status === "Draft").length;
+
+  const platformDistribution = React.useMemo(() => {
+    const counts = {};
+    posts.forEach((p) => {
+      const plat = p.platform || "X";
+      counts[plat] = (counts[plat] || 0) + 1;
+    });
+
+    const colors = {
+      X: "bg-slate-900",
+      Twitter: "bg-slate-900",
+      Telegram: "bg-sky-500",
+      Notion: "bg-stone-800",
+      LinkedIn: "bg-blue-600",
+      Instagram: "bg-pink-600",
+      Facebook: "bg-blue-500",
+      Slack: "bg-emerald-600",
+    };
+
+    const keys = Object.keys(counts);
+    if (keys.length === 0) {
+      return [
+        { name: "X", percentage: 0, count: "0 posts", color: colors.X },
+        { name: "Telegram", percentage: 0, count: "0 posts", color: colors.Telegram },
+        { name: "Notion", percentage: 0, count: "0 posts", color: colors.Notion },
+      ];
+    }
+
+    return keys.map((plat) => {
+      const cnt = counts[plat];
+      const pct = Math.round((cnt / posts.length) * 100);
+      return {
+        name: plat,
+        percentage: pct,
+        count: `${cnt} post${cnt === 1 ? "" : "s"}`,
+        color: colors[plat] || "bg-indigo-600",
+      };
+    });
+  }, [posts]);
 
   const nextUpcoming = posts
     .filter((p) => p.status === "Scheduled" || p.status === "Pending Review")
@@ -48,7 +89,7 @@ export function DashboardView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200">
         <div>
           <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
-            Acme Global Workspace
+            AI Community Workspace
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
             Operational Overview & Dispatch Monitor · {formattedDate}
@@ -72,6 +113,33 @@ export function DashboardView({
             New Dispatch
           </Button>
         </div>
+      </div>
+
+      {/* AI Studio Hero Banner */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-900/50 rounded-xl p-4 sm:p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              AI Studio Active
+            </span>
+            <span className="text-xs text-indigo-200/80">Gemini 2.5 Flash &bull; Pixabay Media &bull; Swytchcode Live</span>
+          </div>
+          <h3 className="text-base font-bold text-white tracking-tight">
+            Autonomous Multi-Channel Content Generation
+          </h3>
+          <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
+            Generate platform-native content with Gemini, select curated visual media and background audio vibes, and syndicate to X, Telegram (@SwytehBot), and Notion in one click.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onNavigate("studio")}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow transition-all shrink-0 cursor-pointer"
+        >
+          <Sparkles className="w-4 h-4 text-indigo-200" />
+          Launch AI Studio
+        </button>
       </div>
 
       {/* Primary Metrics: Scheduled, Published, Failed, Pending Review */}
@@ -251,13 +319,7 @@ export function DashboardView({
               subtitle="Active distribution across managed networks"
             />
             <div className="space-y-3 pt-1">
-              {[
-                { name: "LinkedIn", percentage: 42, count: "144 posts", color: "bg-blue-600" },
-                { name: "X", percentage: 31, count: "120 posts", color: "bg-slate-900" },
-                { name: "Instagram", percentage: 14, count: "42 posts", color: "bg-pink-600" },
-                { name: "Telegram", percentage: 8, count: "22 posts", color: "bg-sky-500" },
-                { name: "Slack", percentage: 5, count: "14 posts", color: "bg-emerald-600" },
-              ].map((p) => (
+              {platformDistribution.map((p) => (
                 <div key={p.name} className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
@@ -306,12 +368,16 @@ export function DashboardView({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1 mb-1">
                       <span className="text-xs font-semibold text-slate-800 truncate">
-                        {post.title}
+                        {typeof post.title === "object"
+                          ? post.title?.caption || post.title?.title || JSON.stringify(post.title)
+                          : post.title}
                       </span>
                       <StatusBadge status={post.status} className="shrink-0" />
                     </div>
                     <p className="text-[11px] text-slate-500 line-clamp-1">
-                      {post.content}
+                      {typeof post.content === "object"
+                        ? post.content?.caption || post.content?.text || JSON.stringify(post.content)
+                        : post.content}
                     </p>
                     <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-400 font-mono">
                       <span>{post.account}</span>

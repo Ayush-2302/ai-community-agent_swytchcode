@@ -36,8 +36,8 @@ export function SettingsView() {
   const [connectionTestResult, setConnectionTestResult] = useState(null);
 
   // General Settings state
-  const [workspaceName, setWorkspaceName] = useState("Acme Global Corp");
-  const [orgSlug, setOrgSlug] = useState("acme-global");
+  const [workspaceName, setWorkspaceName] = useState("AI Community Hub");
+  const [orgSlug, setOrgSlug] = useState("ai-community");
   const [defaultTimezone, setDefaultTimezone] = useState("UTC (GMT+00:00)");
   const [requireApproval, setRequireApproval] = useState(true);
   const [autoRetry, setAutoRetry] = useState(true);
@@ -442,9 +442,9 @@ export function SettingsView() {
 
               <div className="divide-y divide-slate-100 text-xs">
                 {[
-                  { name: "Alex Chen", email: "alex@acme.io", role: "Lead Operator / Admin" },
-                  { name: "Sarah Jenkins", email: "sarah@acme.io", role: "Content Reviewer" },
-                  { name: "DevOps Bot Worker", email: "bot-swytchcode@acme.io", role: "Automation Service Account" },
+                  { name: "Ayush Kumar", email: "ayushkumarakt@gmail.com", role: "Primary Admin & Owner" },
+                  { name: "dotenvcoder", email: "dotenvcoder@gmail.com", role: "LinkedIn & X Operator" },
+                  { name: "kanhacode", email: "ankithelpadi143ayush@gmail.com", role: "Instagram & Reel Pipeline" },
                 ].map((user) => (
                   <div key={user.email} className="py-2.5 flex items-center justify-between">
                     <div>

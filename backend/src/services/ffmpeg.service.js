@@ -2,8 +2,9 @@ import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
 import ffmpeg from "fluent-ffmpeg";
 import fs from "fs";
 import path from "path";
+import config from "../config/env.js";
 
-ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+ffmpeg.setFfmpegPath(config.media.ffmpegPath || ffmpegInstaller.path);
 
 export async function generateReel(inputImagePath, outputVideoPath, metadata) {
   const {
@@ -53,7 +54,7 @@ export async function generateReel(inputImagePath, outputVideoPath, metadata) {
   const wrappedCaption = wrapText(caption || "", 45);
 
   // Font & Style
-  const fontPath = process.env.FONT_PATH || "C:/Windows/Fonts/arialbd.ttf";
+  const fontPath = config.media.fontPath;
   const fontColor = style.text_color || "white";
   const fontSize = isLongCaption ? 36 : 64;
   const height = 1920;
@@ -89,10 +90,7 @@ export async function generateReel(inputImagePath, outputVideoPath, metadata) {
     }
 
     // 3.5 Detect aspect ratio to prevent stretching
-    // We'll scale to 1080 width and let height be dynamic or padded
     filters.push("scale=1080:-2");
-    // If we want to ensure it fits a box without stretching, we can use:
-    // filters.push("scale=w=1080:h=1080:force_original_aspect_ratio=decrease,pad=1080:1080:(ow-iw)/2:(oh-ih)/2");
 
     // 4. Sequence Command
     command

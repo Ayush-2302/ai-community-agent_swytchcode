@@ -1,10 +1,7 @@
 import nodemailer from "nodemailer";
-import dotenv from "dotenv";
+import config from "../config/env.js";
 
-dotenv.config();
-
-// Replace this with your real public image URL
-const IMAGE_URL = "https://backend-portfolio-aips.onrender.com/api/images/ayush/ayu.png"; 
+const IMAGE_URL = "https://backend-portfolio-aips.onrender.com/api/images/ayush/ayu.png";
 
 // Reusable email header
 const emailHeader = (title = "Ayush Kumar Portfolio") => `
@@ -28,8 +25,8 @@ const emailFooter = () => `
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.USER_EMAIL,
-    pass: process.env.USER_PASSWORD,
+    user: config.email.user,
+    pass: config.email.pass,
   },
 });
 
@@ -89,7 +86,7 @@ export const sendEmailToSelf = async (name, email, phone, message) => {
 // Password reset
 export const sendResetPasswordEmail = async (email, resetUrl) => {
   const mailOptions = {
-    from: process.env.USER_EMAIL,
+    from: config.email.user,
     to: email,
     subject: "Password Reset Request",
     html: `
@@ -112,10 +109,10 @@ export const sendResetPasswordEmail = async (email, resetUrl) => {
 
 // Email verification
 export const sendVerificationEmail = async (first_name, email, token) => {
-  const url = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+  const url = `${config.server.frontendUrl}/verify-email?token=${token}`;
 
   const mailOptions = {
-    from: process.env.USER_EMAIL,
+    from: config.email.user,
     to: email,
     subject: "Verify Your Email – Ayush Kumar Portfolio",
     html: `
@@ -144,7 +141,7 @@ export const sendVerificationEmail = async (first_name, email, token) => {
 // Send account password
 export const sendPasswordEmail = async (name, to, password) => {
   const mailOptions = {
-    from: process.env.USER_EMAIL,
+    from: config.email.user,
     to,
     subject: "Your New Account Password – Ayush Kumar Portfolio",
     html: `

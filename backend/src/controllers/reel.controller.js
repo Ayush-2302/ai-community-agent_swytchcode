@@ -1,4 +1,5 @@
 import { processAutoSadReel, processImageToReel } from "../services/pipeline.service.js";
+import config from "../config/env.js";
 
 export const generateMusing = async (req, res) => {
   const { topic } = req.body;
@@ -17,7 +18,7 @@ export const generateFromImage = async (req, res) => {
     const result = await processImageToReel(req.file.path, {
       niche: "kanhacode",
       includeText: true,
-      igPageId: process.env.IG_PAGE_ID_2
+      igPageId: config.channels.instagram.pageId2,
     });
     res.json({ success: true, url: result.publicUrl });
   } catch (error) {

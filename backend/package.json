@@ -17,6 +17,7 @@
     "@google/genai": "^1.52.0",
     "@imagekit/nodejs": "^7.12.1",
     "@supabase/supabase-js": "^2.105.3",
+    "@swytchcode/runtime": "^1.1.6",
     "axios": "^1.16.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
@@ -39,6 +40,7 @@
     "twitter-api-v2": "^1.29.0",
     "uuid": "^14.0.0",
     "youtube-dl-exec": "^3.1.6",
-    "youtube-search-api": "^2.0.1"
+    "youtube-search-api": "^2.0.1",
+    "zod": "^4.6.5"
   }
 }

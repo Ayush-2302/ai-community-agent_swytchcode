@@ -1,9 +1,10 @@
 import axios from "axios";
+import config from "../../../config/env.js";
 
 class InstagramAdapter {
-  constructor() {
-    this.pageId = process.env.IG_PAGE_ID;
-    this.token = process.env.IG_TOKEN;
+  constructor(credentials = {}) {
+    this.pageId = credentials.pageId || config.channels.instagram.pageId1;
+    this.token = credentials.token || config.channels.instagram.token;
     this.graphBase = "https://graph.facebook.com/v21.0";
   }
 
@@ -89,10 +90,8 @@ class InstagramAdapter {
       );
       const containerId = createRes.data.id;
 
-      // 2. Publish Media
-      // Wait a bit? Usually instant for images.
-      // We can implement polling if needed, but often quick enough.
-      await new Promise((resolve) => setTimeout(resolve, 3000)); // Safety wait
+      // 2. Publish Media (delay to allow container processing)
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       const publishParams = {
         creation_id: containerId,

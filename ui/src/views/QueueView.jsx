@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ListOrdered,
   Clock,
@@ -28,6 +28,12 @@ export function QueueView({
   const { addToast } = useToast();
   const [queueItems, setQueueItems] = useState(queue);
   const [isQueuePaused, setIsQueuePaused] = useState(false);
+
+  useEffect(() => {
+    if (queue) {
+      setQueueItems(queue);
+    }
+  }, [queue]);
 
   const nextPost = queueItems[0];
 
@@ -254,7 +260,9 @@ export function QueueView({
 
                     {/* Post Title */}
                     <td className="px-4 py-3 font-medium text-slate-900">
-                      {item.title}
+                      {typeof item.title === "object"
+                        ? item.title?.caption || item.title?.title || JSON.stringify(item.title)
+                        : item.title}
                     </td>
 
                     {/* Platform */}

@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
+import config from "../config/env.js";
 
 import { resizeToReel } from "../utils/image.js";
 import { generateReel, generateVideoReel } from "./ffmpeg.service.js";
@@ -115,19 +116,19 @@ const SOCIAL_CONFIGS = {
   },
   dotenvcoder: {
     li: LI_ACCOUNT_2,
-    ig: process.env.IG_PAGE_ID_2,
+    ig: config.channels.instagram.pageId2,
     postToLinkedIn: true,
     postToInstagram: true,
   },
   kanhacode: {
     li: null,
-    ig: process.env.IG_PAGE_ID_1,
+    ig: config.channels.instagram.pageId1,
     postToLinkedIn: false,
     postToInstagram: true,
   },
   broken_wings: {
     li: null,
-    ig: process.env.IG_PAGE_ID_3,
+    ig: config.channels.instagram.pageId3,
     postToLinkedIn: false,
     postToInstagram: true,
   },
@@ -352,7 +353,7 @@ export async function processImageToReel(imagePath, options = {}) {
   const {
     niche = "kanhacode",
     includeText = false,
-    igPageId = process.env.IG_PAGE_ID_1,
+    igPageId = config.channels.instagram.pageId1,
     isBatch = false,
   } = options;
   const requestId = uuidv4();

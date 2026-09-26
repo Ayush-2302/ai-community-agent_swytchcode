@@ -1,8 +1,8 @@
 import axios from "axios";
 import fs from "fs";
 import path from "path";
-
 import { TwitterApi } from "twitter-api-v2";
+import config from "../../../config/env.js";
 
 class XAdapter {
   constructor(credentials) {
@@ -82,7 +82,7 @@ class XAdapter {
         return me.data;
       }
     } catch (error) {
-      console.error("❌ X Auth Check Failed:", error.message);
+      console.error("X Auth Check Failed:", error.message);
       throw error;
     }
   }
@@ -115,19 +115,19 @@ class XAdapter {
   }
 }
 
-// Create two instances for both accounts
+// Create instances for accounts
 const xAdapter1 = new XAdapter({
-  appKey: process.env.X_API_KEY,
-  appSecret: process.env.X_API_SECRET,
-  accessToken: process.env.X_ACCESS_TOKEN,
-  accessSecret: process.env.X_ACCESS_SECRET,
+  appKey: config.channels.x.apiKey,
+  appSecret: config.channels.x.apiSecret,
+  accessToken: config.channels.x.accessToken,
+  accessSecret: config.channels.x.accessSecret,
 });
 
 const xAdapter2 = new XAdapter({
-  appKey: process.env.ACCOUNT_2_X_API_KEY,
-  appSecret: process.env.ACCOUNT_2_X_API_SECRET,
-  accessToken: process.env.ACCOUNT_2_X_ACCESS_TOKEN,
-  accessSecret: process.env.ACCOUNT_2_X_ACCESS_SECRET,
+  appKey: config.channels.x.account2.apiKey,
+  appSecret: config.channels.x.account2.apiSecret,
+  accessToken: config.channels.x.account2.accessToken,
+  accessSecret: config.channels.x.account2.accessSecret,
 });
 
 // Utility to post to both accounts

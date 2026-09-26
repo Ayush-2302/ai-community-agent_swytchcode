@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Cpu,
   Play,
@@ -19,6 +19,7 @@ import { Card, CardHeader } from "../components/common/Card";
 import { Modal } from "../components/common/Modal";
 import { useToast } from "../components/common/Toast";
 import { AUTOMATION_JOBS } from "../services/mockData";
+import { socialApi } from "../api/socialApi";
 
 export function AutomationView({ onNavigate }) {
   const { addToast } = useToast();
@@ -26,6 +27,20 @@ export function AutomationView({ onNavigate }) {
   const [daemonStatus, setDaemonStatus] = useState("Running");
   const [runningJobId, setRunningJobId] = useState(null);
   const [terminalOutput, setTerminalOutput] = useState(null);
+
+  useEffect(() => {
+    async function checkStatus() {
+      try {
+        const daemon = await socialApi.getAutomationStatus();
+        if (daemon) {
+          setDaemonStatus(daemon.status || "Running");
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    checkStatus();
+  }, []);
 
   const handleToggleDaemon = () => {
     const nextStatus = daemonStatus === "Running" ? "Paused" : "Running";
@@ -51,7 +66,7 @@ export function AutomationView({ onNavigate }) {
     const timestamp = new Date().toLocaleTimeString();
     const simulatedLog = [
       `[${timestamp}] [node-runner] Spawning process: ${job.command}`,
-      `[${timestamp}] [env] NODE_ENV=production SWYTCHCODE_WORKSPACE=ws_acme_social_ops`,
+      `[${timestamp}] [env] NODE_ENV=production SWYTCHCODE_WORKSPACE=ws_ai_community_ops`,
       `[${timestamp}] [worker] Connected to Swytchcode Router & local queue DB`,
       `[${timestamp}] [info] Processing batch execution for ${job.name}`,
       `[${timestamp}] [success] Dispatched 0 errors. Process completed with exit code 0.`,
