@@ -1,0 +1,426 @@
+import React, { useState } from "react";
+import { Modal } from "../common/Modal";
+import { Button } from "../common/Button";
+import { Input, Textarea } from "../common/Input";
+import { Select } from "../common/Select";
+import { PlatformIcon } from "../common/PlatformIcon";
+import { RealisticPlatformPreview } from "./RealisticPlatformPreview";
+import { useToast } from "../common/Toast";
+import { swytchcode } from "../../services/swytchcode";
+import { Image, Calendar, Clock, Layers, Sparkles, Send, Globe, Upload } from "lucide-react";
+
+export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = null }) {
+  const { addToast } = useToast();
+
+  const [selectedPlatforms, setSelectedPlatforms] = useState(["X"]);
+  const [selectedAccount, setSelectedAccount] = useState("@acme_eng");
+  const [content, setContent] = useState("");
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [campaign, setCampaign] = useState("Q3 Engineering");
+  const [tags, setTags] = useState("Engineering, DevOps");
+  const [schedulingMode, setSchedulingMode] = useState(initialDate ? "schedule" : "queue"); // 'now' | 'schedule' | 'queue'
+  const [scheduleDate, setScheduleDate] = useState(
+    initialDate || new Date().toISOString().split("T")[0]
+  );
+  const [scheduleTime, setScheduleTime] = useState("14:30");
+  const [timezone, setTimezone] = useState("UTC (GMT+00:00)");
+  const [previewPlatform, setPreviewPlatform] = useState("X");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const availablePlatforms = [
+    { id: "X", label: "X (Twitter)", limit: 280, defaultAccount: "@acme_eng" },
+    { id: "LinkedIn", label: "LinkedIn", limit: 3000, defaultAccount: "Acme Cloud Technologies" },
+    { id: "Instagram", label: "Instagram", limit: 2200, defaultAccount: "@acmelabs" },
+    { id: "Facebook", label: "Facebook", limit: 5000, defaultAccount: "Acme Official Page" },
+    { id: "Telegram", label: "Telegram", limit: 4096, defaultAccount: "Acme Dev Channel" },
+    { id: "Slack", label: "Slack", limit: 4000, defaultAccount: "#announcements" },
+  ];
+
+  const currentPlatformMeta = availablePlatforms.find((p) => p.id === previewPlatform) || availablePlatforms[0];
+  const charLimit = currentPlatformMeta.limit;
+  const charsRemaining = charLimit - content.length;
+  const isOverLimit = charsRemaining < 0;
+
+  const togglePlatform = (platformId) => {
+    setSelectedPlatforms((prev) => {
+      if (prev.includes(platformId)) {
+        if (prev.length === 1) return prev; // keep at least 1
+        return prev.filter((p) => p !== platformId);
+      } else {
+        const next = [...prev, platformId];
+        setPreviewPlatform(platformId);
+        return next;
+      }
+    });
+  };
+
+  const sampleImages = [
+    { label: "Cloud Infra", url: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80" },
+    { label: "Team Demo", url: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" },
+    { label: "Analytics", url: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=800&q=80" },
+  ];
+
+  const handleSubmit = async (isDraft = false) => {
+    if (!content.trim() && !mediaUrl) {
+      addToast({
+        type: "error",
+        title: "Content required",
+        message: "Please enter text or attach an image to create this post.",
+      });
+      return;
+    }
+
+    if (isOverLimit) {
+      addToast({
+        type: "error",
+        title: "Character limit exceeded",
+        message: `Content exceeds the ${charLimit} limit for ${previewPlatform}.`,
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const scheduledIso = schedulingMode === "schedule"
+        ? new Date(`${scheduleDate}T${scheduleTime}:00Z`).toISOString()
+        : schedulingMode === "now"
+        ? new Date().toISOString()
+        : new Date(Date.now() + 4 * 3600 * 1000).toISOString();
+
+      const newPost = {
+        id: `post_${Date.now()}`,
+        title: content.slice(0, 45).trim() + (content.length > 45 ? "..." : ""),
+        content,
+        platform: selectedPlatforms[0],
+        platforms: selectedPlatforms,
+        account: selectedAccount,
+        scheduledAt: scheduledIso,
+        status: isDraft
+          ? "Draft"
+          : schedulingMode === "now"
+          ? "Published"
+          : "Scheduled",
+        campaign,
+        mediaUrl: mediaUrl || null,
+        tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+        views: 0,
+        likes: 0,
+        reposts: 0,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Dispatch via Swytchcode connector if publishing immediately
+      if (schedulingMode === "now" && !isDraft) {
+        await swytchcode.dispatchPost({
+          platform: selectedPlatforms[0],
+          content,
+          mediaUrl,
+          accountHandle: selectedAccount,
+        });
+      }
+
+      onPostCreated(newPost);
+
+      addToast({
+        type: "success",
+        title: isDraft ? "Draft Saved" : schedulingMode === "now" ? "Post Dispatched" : "Post Scheduled",
+        message: isDraft
+          ? "Post has been saved to your drafts."
+          : schedulingMode === "now"
+          ? `Dispatched successfully to ${selectedPlatforms.join(", ")} via Swytchcode.`
+          : `Post scheduled for ${new Date(scheduledIso).toLocaleDateString()} at ${scheduleTime}.`,
+      });
+
+      onClose();
+    } catch (err) {
+      addToast({
+        type: "error",
+        title: "Operation Failed",
+        message: err.message || "Failed to create post. Check operational logs.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Create Social Post"
+      description="Compose, configure multi-channel delivery, and preview post rendering."
+      maxWidth="max-w-5xl"
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => handleSubmit(true)}
+            disabled={isSubmitting}
+          >
+            Save Draft
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => handleSubmit(false)}
+            disabled={isSubmitting || isOverLimit}
+            icon={schedulingMode === "now" ? Send : Calendar}
+          >
+            {isSubmitting
+              ? "Processing..."
+              : schedulingMode === "now"
+              ? "Publish Now"
+              : schedulingMode === "queue"
+              ? "Add to Queue"
+              : "Schedule Post"}
+          </Button>
+        </>
+      }
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Editor & Configuration (7 cols) */}
+        <div className="lg:col-span-7 space-y-4">
+          {/* Target Platforms */}
+          <div>
+            <label className="text-xs font-semibold text-slate-700 block mb-1.5">
+              Target Platforms
+            </label>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+              {availablePlatforms.map((p) => {
+                const isSelected = selectedPlatforms.includes(p.id);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => togglePlatform(p.id)}
+                    className={`flex flex-col items-center justify-center p-2 rounded-md border text-xs transition-all ${
+                      isSelected
+                        ? "bg-slate-900 border-slate-900 text-white font-medium shadow-none"
+                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    <PlatformIcon platform={p.id} className="w-4 h-4 mb-1" />
+                    <span className="text-[11px] truncate">{p.id}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Account & Campaign Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Select
+              label="Publishing Account"
+              value={selectedAccount}
+              onChange={(e) => setSelectedAccount(e.target.value)}
+              options={[
+                { value: "@acme_eng", label: "Acme Engineering (@acme_eng)" },
+                { value: "Acme Cloud Technologies", label: "Acme Cloud Technologies (LinkedIn)" },
+                { value: "@acmelabs", label: "Acme Labs (@acmelabs)" },
+                { value: "Acme Official Page", label: "Acme Official Page (Facebook)" },
+                { value: "Acme Dev Channel", label: "Acme Dev Channel (Telegram)" },
+                { value: "#announcements", label: "Announcements (#announcements)" },
+              ]}
+            />
+
+            <Select
+              label="Link Campaign"
+              value={campaign}
+              onChange={(e) => setCampaign(e.target.value)}
+              options={[
+                { value: "Q3 Engineering", label: "Q3 Engineering Highlights" },
+                { value: "Customer Stories", label: "Customer Stories & Enterprise ROI" },
+                { value: "Hiring 2026", label: "Hiring & Culture 2026" },
+                { value: "Developer Community", label: "Developer Community Sprint" },
+                { value: "Unassigned", label: "None / Standalone Post" },
+              ]}
+            />
+          </div>
+
+          {/* Post Content Editor */}
+          <div className="relative">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-semibold text-slate-700">
+                Post Content
+              </label>
+              <div
+                className={`text-[11px] font-mono ${
+                  isOverLimit
+                    ? "text-rose-600 font-bold"
+                    : charsRemaining < 20
+                    ? "text-amber-600 font-semibold"
+                    : "text-slate-400"
+                }`}
+              >
+                {charsRemaining} chars left ({previewPlatform})
+              </div>
+            </div>
+            <textarea
+              rows={5}
+              placeholder="What do you want to publish? Share announcements, links, releases, or insights..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className={`w-full rounded-md border text-sm text-slate-900 bg-white placeholder:text-slate-400 p-3 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-400 transition-colors ${
+                isOverLimit ? "border-rose-400 focus:ring-rose-200" : "border-slate-200"
+              }`}
+            />
+          </div>
+
+          {/* Media Attachment */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700 block">
+              Media Attachment (Optional)
+            </label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Paste public image or video URL (https://...)"
+                value={mediaUrl}
+                onChange={(e) => setMediaUrl(e.target.value)}
+                containerClassName="flex-1"
+              />
+              {mediaUrl && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMediaUrl("")}
+                  className="text-xs"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+
+            {/* Quick Sample Presets */}
+            <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-500">
+              <span className="text-slate-400">Sample media:</span>
+              {sampleImages.map((s) => (
+                <button
+                  key={s.label}
+                  type="button"
+                  onClick={() => setMediaUrl(s.url)}
+                  className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] transition-colors"
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Scheduling & Delivery Strategy */}
+          <div className="pt-2 border-t border-slate-100">
+            <label className="text-xs font-semibold text-slate-700 block mb-2">
+              Delivery Schedule
+            </label>
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setSchedulingMode("queue")}
+                className={`py-2 px-3 rounded-md border text-xs font-medium text-center transition-all ${
+                  schedulingMode === "queue"
+                    ? "bg-slate-900 border-slate-900 text-white"
+                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                Add to Queue
+              </button>
+              <button
+                type="button"
+                onClick={() => setSchedulingMode("schedule")}
+                className={`py-2 px-3 rounded-md border text-xs font-medium text-center transition-all ${
+                  schedulingMode === "schedule"
+                    ? "bg-slate-900 border-slate-900 text-white"
+                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                Specific Time
+              </button>
+              <button
+                type="button"
+                onClick={() => setSchedulingMode("now")}
+                className={`py-2 px-3 rounded-md border text-xs font-medium text-center transition-all ${
+                  schedulingMode === "now"
+                    ? "bg-slate-900 border-slate-900 text-white"
+                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                Publish Now
+              </button>
+            </div>
+
+            {schedulingMode === "schedule" && (
+              <div className="grid grid-cols-3 gap-3 p-3 bg-slate-50 rounded-md border border-slate-200 text-xs">
+                <Input
+                  label="Date"
+                  type="date"
+                  value={scheduleDate}
+                  onChange={(e) => setScheduleDate(e.target.value)}
+                />
+                <Input
+                  label="Time"
+                  type="time"
+                  value={scheduleTime}
+                  onChange={(e) => setScheduleTime(e.target.value)}
+                />
+                <Select
+                  label="Timezone"
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
+                  options={[
+                    { value: "UTC (GMT+00:00)", label: "UTC (GMT+00:00)" },
+                    { value: "US/Eastern (EST)", label: "US/Eastern (EST)" },
+                    { value: "US/Pacific (PST)", label: "US/Pacific (PST)" },
+                    { value: "Asia/Kolkata (IST)", label: "Asia/Kolkata (IST)" },
+                  ]}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Platform Preview (5 cols) */}
+        <div className="lg:col-span-5 flex flex-col space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span className="text-xs font-semibold text-slate-700">
+              Live Channel Preview
+            </span>
+
+            {/* Switch platform preview tabs */}
+            <div className="flex items-center gap-1">
+              {selectedPlatforms.map((plat) => (
+                <button
+                  key={plat}
+                  type="button"
+                  onClick={() => setPreviewPlatform(plat)}
+                  className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
+                    previewPlatform === plat
+                      ? "bg-slate-900 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {plat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex-1 bg-slate-50/70 p-3 rounded-md border border-slate-200 overflow-y-auto">
+            <RealisticPlatformPreview
+              platform={previewPlatform}
+              content={content}
+              mediaUrl={mediaUrl}
+              account={selectedAccount}
+            />
+          </div>
+
+          {/* Delivery Note */}
+          <div className="text-[11px] text-slate-400 bg-white p-2.5 rounded border border-slate-200">
+            Dispatches via Swytchcode Router to verified platform endpoints. Media is hosted and cached automatically on CDN.
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+}
