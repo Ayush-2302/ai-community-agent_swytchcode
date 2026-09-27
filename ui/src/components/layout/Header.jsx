@@ -26,6 +26,7 @@ export function Header({
     "/automation": "Node.js Automation Daemon",
     "/logs": "Operational Activity Logs",
     "/settings": "Platform Settings",
+    "/design-system": "Design System Showcase & Tokens",
   };
 
   const activeTitle =
@@ -35,22 +36,22 @@ export function Header({
     "SocialOps Operations";
 
   return (
-    <header className="sticky top-0 z-30 h-14 bg-white border-b border-slate-200 px-4 md:px-6 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-30 h-14 bg-surface border-b border-border px-4 md:px-6 flex items-center justify-between gap-4">
       {/* Left: Mobile menu toggle & page title */}
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="md:hidden text-slate-500 hover:text-slate-700 p-1.5 rounded-md hover:bg-slate-100"
+          className="md:hidden text-text-muted hover:text-text-primary p-1.5 rounded-md hover:bg-surface-hover"
         >
           <Menu className="w-5 h-5" />
         </button>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400 font-medium hidden sm:inline">
+          <span className="text-xs text-text-muted font-medium hidden sm:inline">
             SocialOps /
           </span>
-          <h1 className="text-sm md:text-base font-semibold text-slate-900 tracking-tight">
+          <h1 className="text-sm md:text-base font-semibold text-text-primary tracking-tight">
             {activeTitle}
           </h1>
         </div>
@@ -59,11 +60,11 @@ export function Header({
       {/* Center: Search input */}
       <div className="hidden lg:flex items-center max-w-xs w-full">
         <div className="relative w-full">
-          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder="Search posts, logs, accounts... (Cmd+K)"
-            className="h-8 w-full pl-8 pr-3 text-xs bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-300 focus:bg-white text-slate-800 placeholder:text-slate-400 transition-colors"
+            className="h-8 w-full pl-8 pr-3 text-xs bg-surface-soft border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface text-text-primary placeholder:text-text-disabled transition-colors"
           />
         </div>
       </div>
@@ -71,21 +72,21 @@ export function Header({
       {/* Right: Live Status & CTAs */}
       <div className="flex items-center gap-2 sm:gap-2.5">
         {/* Subtle Database Status Pill */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-50 border border-slate-200 text-xs text-slate-600">
-          <Database className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-[11px] font-mono text-slate-700">
+        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-soft border border-border text-xs text-text-secondary">
+          <Database className="w-3.5 h-3.5 text-text-muted" />
+          <span className="text-[11px] font-mono text-text-primary font-medium">
             {recordCount} Records
           </span>
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
         </div>
 
         {/* AI Studio Fast Navigation CTA */}
         <button
           type="button"
           onClick={() => navigate("/studio")}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-md text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition-colors"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-md text-primary bg-primary-soft hover:bg-primary-soft/80 border border-primary-soft transition-colors cursor-pointer"
         >
-          <Sparkles className="w-3.5 h-3.5 text-violet-600" />
+          <Sparkles className="w-3.5 h-3.5 text-primary" />
           <span className="hidden md:inline">AI Studio</span>
         </button>
 

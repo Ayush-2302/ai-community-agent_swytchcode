@@ -9,13 +9,19 @@ import {
   ArrowRight,
   TrendingUp,
 } from "lucide-react";
-import { Button } from "../components/common/Button";
-import { StatusBadge } from "../components/common/Badge";
+import {
+  PageContainer,
+  PageHeader,
+  Button,
+  StatusBadge,
+  Badge,
+  Card,
+  Modal,
+  Input,
+  Textarea,
+  EmptyState,
+} from "../components/ui";
 import { PlatformIcon } from "../components/common/PlatformIcon";
-import { Card, CardHeader } from "../components/common/Card";
-import { Modal } from "../components/common/Modal";
-import { Input, Textarea } from "../components/common/Input";
-import { EmptyState } from "../components/common/EmptyState";
 import { useToast } from "../components/common/Toast";
 
 export function CampaignsView({ posts = [], campaigns = [], onOpenCreatePost }) {
@@ -108,110 +114,104 @@ export function CampaignsView({ posts = [], campaigns = [], onOpenCreatePost }) 
   };
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
-            Campaigns
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Group, track, and aggregate performance across multi-channel initiatives.
-          </p>
-        </div>
-
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => setIsNewModalOpen(true)}
-          icon={Plus}
-        >
-          New Campaign
-        </Button>
-      </div>
+      <PageHeader
+        title="Campaigns"
+        description="Group, track, and aggregate performance across multi-channel initiatives."
+        actions={
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setIsNewModalOpen(true)}
+            icon={Plus}
+          >
+            New Campaign
+          </Button>
+        }
+      />
 
       {/* Campaigns Grid */}
       {campaignList.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-10">
+        <Card className="p-10">
           <EmptyState
             title="No campaigns found"
             description="Create your first campaign or tag posts with a campaign name to track aggregate performance."
-            actionLabel="New Campaign"
-            onAction={() => setIsNewModalOpen(true)}
+            action={<Button onClick={() => setIsNewModalOpen(true)}>New Campaign</Button>}
           />
-        </div>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {campaignList.map((cmp) => {
             const associatedPosts = getCampaignPosts(cmp.name);
 
-          return (
-            <Card key={cmp.id} padding="md" className="flex flex-col justify-between">
-              <div>
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900 leading-snug">
-                      {cmp.name}
-                    </h3>
-                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5 font-mono">
-                      <span>{cmp.startDate}</span>
-                      <span>→</span>
-                      <span>{cmp.endDate}</span>
+            return (
+              <Card key={cmp.id} className="p-5 flex flex-col justify-between hover:border-border-hover transition-colors">
+                <div>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div>
+                      <h3 className="text-sm font-semibold text-text-primary leading-snug">
+                        {cmp.name}
+                      </h3>
+                      <div className="flex items-center gap-1.5 text-[11px] text-text-muted mt-0.5 font-mono">
+                        <span>{cmp.startDate}</span>
+                        <span>→</span>
+                        <span>{cmp.endDate}</span>
+                      </div>
+                    </div>
+                    <StatusBadge status={cmp.status} />
+                  </div>
+
+                  <p className="text-xs text-text-secondary line-clamp-2 mb-4 leading-relaxed">
+                    {cmp.description}
+                  </p>
+
+                  {/* Channels & metrics pill row */}
+                  <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-border text-xs">
+                    <div className="flex items-center gap-1.5 text-text-muted">
+                      <span className="text-[11px]">Channels:</span>
+                      <div className="flex items-center gap-1">
+                        {cmp.platforms.map((plat) => (
+                          <div
+                            key={plat}
+                            className="w-5 h-5 rounded border border-border bg-surface-soft flex items-center justify-center text-text-secondary"
+                            title={plat}
+                          >
+                            <PlatformIcon platform={plat} className="w-3 h-3" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="text-[11px] text-text-secondary font-mono">
+                      <span className="font-semibold text-text-primary">{cmp.postsCount}</span> Posts
+                    </div>
+
+                    <div className="text-[11px] text-text-secondary font-mono">
+                      <span className="font-semibold text-text-primary">{cmp.impressions}</span> Impressions
+                    </div>
+
+                    <div className="text-[11px] text-success font-mono font-medium ml-auto">
+                      {cmp.engagementRate} Engagement
                     </div>
                   </div>
-                  <StatusBadge status={cmp.status} />
                 </div>
 
-                <p className="text-xs text-slate-600 line-clamp-2 mb-3">
-                  {cmp.description}
-                </p>
-
-                {/* Platforms & metrics pill row */}
-                <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100 text-xs">
-                  <div className="flex items-center gap-1.5 text-slate-500">
-                    <span className="text-[11px] text-slate-400">Channels:</span>
-                    <div className="flex items-center gap-1">
-                      {cmp.platforms.map((plat) => (
-                        <div
-                          key={plat}
-                          className="w-5 h-5 rounded border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-700"
-                          title={plat}
-                        >
-                          <PlatformIcon platform={plat} className="w-3 h-3" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="text-[11px] text-slate-600 font-mono">
-                    <span className="font-semibold text-slate-900">{cmp.postsCount}</span> Posts
-                  </div>
-
-                  <div className="text-[11px] text-slate-600 font-mono">
-                    <span className="font-semibold text-slate-900">{cmp.impressions}</span> Impressions
-                  </div>
-
-                  <div className="text-[11px] text-emerald-600 font-mono font-medium ml-auto">
-                    {cmp.engagementRate} Engagement
-                  </div>
+                {/* Footer action */}
+                <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+                  <span className="text-[11px] text-text-muted">
+                    {associatedPosts.length} posts linked in workspace
+                  </span>
+                  <button
+                    onClick={() => setActiveCampaignDetail(cmp)}
+                    className="text-xs text-primary hover:text-primary-hover font-medium flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    View Associated Posts <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-              </div>
-
-              {/* Footer action */}
-              <div className="mt-4 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-[11px] text-slate-400">
-                  {associatedPosts.length} posts linked in workspace
-                </span>
-                <button
-                  onClick={() => setActiveCampaignDetail(cmp)}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-                >
-                  View Associated Posts <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </Card>
-          );
-        })}
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -230,23 +230,23 @@ export function CampaignsView({ posts = [], campaigns = [], onOpenCreatePost }) 
           }
         >
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
               Linked Posts ({getCampaignPosts(activeCampaignDetail.name).length})
             </h4>
 
             {getCampaignPosts(activeCampaignDetail.name).length === 0 ? (
-              <div className="p-6 text-center text-xs text-slate-500 border border-dashed rounded-md">
+              <div className="p-6 text-center text-xs text-text-muted border border-dashed border-border rounded-lg bg-surface-soft">
                 No posts currently linked to this campaign. You can assign campaigns inside the Post Composer.
               </div>
             ) : (
-              <div className="divide-y divide-slate-100 border border-slate-200 rounded-md overflow-hidden">
+              <div className="divide-y divide-border border border-border rounded-lg overflow-hidden bg-surface">
                 {getCampaignPosts(activeCampaignDetail.name).map((post) => (
-                  <div key={post.id} className="p-3 bg-white flex items-center justify-between text-xs">
+                  <div key={post.id} className="p-3 bg-surface hover:bg-surface-hover flex items-center justify-between text-xs transition-colors">
                     <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-4">
-                      <PlatformIcon platform={post.platform} className="w-4 h-4 text-slate-500 shrink-0" />
+                      <PlatformIcon platform={post.platform} className="w-4 h-4 text-text-muted shrink-0" />
                       <div className="min-w-0">
-                        <div className="font-medium text-slate-900 truncate">{post.title}</div>
-                        <div className="text-[11px] text-slate-400 font-mono">{post.account} · {new Date(post.scheduledAt).toLocaleDateString()}</div>
+                        <div className="font-medium text-text-primary truncate">{post.title}</div>
+                        <div className="text-[11px] text-text-muted font-mono">{post.account} · {new Date(post.scheduledAt).toLocaleDateString()}</div>
                       </div>
                     </div>
                     <StatusBadge status={post.status} />
@@ -309,6 +309,6 @@ export function CampaignsView({ posts = [], campaigns = [], onOpenCreatePost }) 
           </div>
         </div>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }

@@ -15,10 +15,15 @@ import {
   RefreshCw,
   Terminal,
 } from "lucide-react";
-import { Card } from "../components/common/Card";
-import { Button } from "../components/common/Button";
-import { Input, Textarea } from "../components/common/Input";
-import { Select } from "../components/common/Select";
+import {
+  PageContainer,
+  PageHeader,
+  Card,
+  Button,
+  Input,
+  Select,
+  Badge,
+} from "../components/ui";
 import { PlatformIcon } from "../components/common/PlatformIcon";
 import { useToast } from "../components/common/Toast";
 import { swytchcode } from "../services/swytchcode";
@@ -97,21 +102,17 @@ export function SettingsView() {
   };
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       {/* Top Header */}
-      <div className="pb-3 border-b border-slate-200">
-        <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
-          Platform Settings
-        </h2>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Configure API credentials, delivery infrastructure, scheduling slots, and automation limits.
-        </p>
-      </div>
+      <PageHeader
+        title="Platform Settings"
+        description="Configure API credentials, delivery infrastructure, scheduling slots, and automation limits."
+      />
 
       {/* Settings Layout: Sidebar Tabs + Content Area */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         {/* Settings Navigation Sidebar (3 cols) */}
-        <div className="md:col-span-3 space-y-1 bg-white border border-slate-200 rounded-lg p-2">
+        <Card className="md:col-span-3 space-y-1 p-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -119,10 +120,10 @@ export function SettingsView() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium transition-colors text-left ${
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer ${
                   isActive
-                    ? "bg-slate-900 text-white font-semibold"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-primary-soft text-primary font-semibold"
+                    : "text-text-secondary hover:bg-surface-soft hover:text-text-primary"
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
@@ -130,26 +131,26 @@ export function SettingsView() {
               </button>
             );
           })}
-        </div>
+        </Card>
 
         {/* Settings Form Pane (9 cols) */}
         <div className="md:col-span-9">
           {/* Tab 1: API / Integrations (Swytchcode Integration) */}
           {activeTab === "api" && (
-            <Card padding="lg" className="space-y-6">
-              <div className="border-b border-slate-100 pb-3">
+            <Card className="p-6 space-y-6">
+              <div className="border-b border-border pb-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-900">
+                    <h3 className="text-sm font-semibold text-text-primary">
                       Swytchcode API Integration
                     </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
+                    <p className="text-xs text-text-muted mt-0.5">
                       Unified gateway connecting X, Telegram, Slack, Notion, Resend, and LinkedIn APIs.
                     </p>
                   </div>
-                  <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium rounded">
+                  <Badge variant="success" size="sm" dot>
                     Active Gateway
-                  </span>
+                  </Badge>
                 </div>
               </div>
 
@@ -190,12 +191,12 @@ export function SettingsView() {
                 </div>
 
                 {/* Connection Ping Box */}
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div className="p-3.5 bg-surface-soft border border-border rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                   <div>
-                    <span className="font-semibold text-slate-900 block">
+                    <span className="font-semibold text-text-primary block">
                       Connection Health & Diagnostic Ping
                     </span>
-                    <span className="text-slate-500 text-[11px]">
+                    <span className="text-text-muted text-[11px]">
                       Pings Swytchcode endpoints and verifies all 7 provider channel webhooks.
                     </span>
                   </div>
@@ -213,15 +214,15 @@ export function SettingsView() {
 
                 {/* Connection Test Diagnostics */}
                 {connectionTestResult && (
-                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-900 space-y-1 font-mono">
-                    <div className="flex items-center gap-1.5 font-bold">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <div className="p-3 bg-success-soft border border-success/30 rounded-lg text-xs text-text-primary space-y-1 font-mono">
+                    <div className="flex items-center gap-1.5 font-bold text-success">
+                      <CheckCircle2 className="w-4 h-4 text-success" />
                       Swytchcode Gateway Healthy (HTTP 200 OK)
                     </div>
-                    <div className="text-[11px] text-emerald-700">
+                    <div className="text-[11px] text-text-secondary">
                       Workspace: {connectionTestResult.workspace} | Mode: {connectionTestResult.environment} | Latency: {connectionTestResult.latency}ms
                     </div>
-                    <div className="text-[11px] text-emerald-700">
+                    <div className="text-[11px] text-text-secondary">
                       Providers Active: {connectionTestResult.channelsOnline?.join(", ")}
                     </div>
                   </div>
@@ -229,7 +230,7 @@ export function SettingsView() {
 
                 {/* Integrated Providers Grid */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-2">
+                  <label className="text-xs font-semibold text-text-primary block mb-2">
                     Managed Platform Providers
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
@@ -241,13 +242,13 @@ export function SettingsView() {
                       { name: "Resend Email", status: "Operational", ping: "38ms" },
                       { name: "LinkedIn Marketing", status: "Operational", ping: "89ms" },
                     ].map((p) => (
-                      <div key={p.name} className="p-2.5 rounded bg-white border border-slate-200">
+                      <div key={p.name} className="p-2.5 rounded-lg bg-surface border border-border">
                         <div className="flex items-center gap-1.5 mb-1">
-                          <PlatformIcon platform={p.name} className="w-3.5 h-3.5 text-slate-700" />
-                          <span className="font-semibold text-slate-800 text-[11px]">{p.name}</span>
+                          <PlatformIcon platform={p.name} className="w-3.5 h-3.5 text-text-secondary" />
+                          <span className="font-semibold text-text-primary text-[11px]">{p.name}</span>
                         </div>
-                        <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
-                          <span className="text-emerald-600">● {p.status}</span>
+                        <div className="flex items-center justify-between text-[10px] text-text-muted font-mono">
+                          <span className="text-success font-medium">● {p.status}</span>
                           <span>{p.ping}</span>
                         </div>
                       </div>
@@ -255,7 +256,7 @@ export function SettingsView() {
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex justify-end">
+                <div className="pt-3 border-t border-border flex justify-end">
                   <Button variant="primary" size="sm" onClick={handleSaveApiSettings} icon={Save}>
                     Save API Configuration
                   </Button>
@@ -266,12 +267,12 @@ export function SettingsView() {
 
           {/* Tab 2: General & Workspace */}
           {activeTab === "general" && (
-            <Card padding="lg" className="space-y-4">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-semibold text-slate-900">
+            <Card className="p-6 space-y-4">
+              <div className="border-b border-border pb-3">
+                <h3 className="text-sm font-semibold text-text-primary">
                   Workspace Profile
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-text-muted mt-0.5">
                   General organizational settings and default localization.
                 </p>
               </div>
@@ -289,7 +290,7 @@ export function SettingsView() {
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end">
+              <div className="pt-3 border-t border-border flex justify-end">
                 <Button
                   variant="primary"
                   size="sm"
@@ -303,40 +304,40 @@ export function SettingsView() {
 
           {/* Tab 3: Publishing Defaults */}
           {activeTab === "publishing" && (
-            <Card padding="lg" className="space-y-4">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-semibold text-slate-900">
+            <Card className="p-6 space-y-4">
+              <div className="border-b border-border pb-3">
+                <h3 className="text-sm font-semibold text-text-primary">
                   Publishing & Quality Safeguards
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-text-muted mt-0.5">
                   Enforce operational checks before content dispatches.
                 </p>
               </div>
 
               <div className="space-y-3 text-xs">
-                <label className="flex items-start gap-2.5 p-3 rounded border border-slate-200 cursor-pointer hover:bg-slate-50">
+                <label className="flex items-start gap-2.5 p-3 rounded-lg border border-border cursor-pointer hover:bg-surface-soft transition-colors">
                   <input
                     type="checkbox"
                     checked={requireApproval}
                     onChange={(e) => setRequireApproval(e.target.checked)}
-                    className="mt-0.5 rounded text-slate-900 focus:ring-0"
+                    className="mt-0.5 rounded text-primary focus:ring-primary/20 accent-primary"
                   />
                   <div>
-                    <span className="font-semibold text-slate-800 block">Require Operator Review</span>
-                    <span className="text-slate-500 text-[11px]">Posts created by junior team members or automated bots enter 'Pending Review' first.</span>
+                    <span className="font-semibold text-text-primary block">Require Operator Review</span>
+                    <span className="text-text-muted text-[11px]">Posts created by junior team members or automated bots enter 'Pending Review' first.</span>
                   </div>
                 </label>
 
-                <label className="flex items-start gap-2.5 p-3 rounded border border-slate-200 cursor-pointer hover:bg-slate-50">
+                <label className="flex items-start gap-2.5 p-3 rounded-lg border border-border cursor-pointer hover:bg-surface-soft transition-colors">
                   <input
                     type="checkbox"
                     checked={autoRetry}
                     onChange={(e) => setAutoRetry(e.target.checked)}
-                    className="mt-0.5 rounded text-slate-900 focus:ring-0"
+                    className="mt-0.5 rounded text-primary focus:ring-primary/20 accent-primary"
                   />
                   <div>
-                    <span className="font-semibold text-slate-800 block">Automatic Exponential Backoff Retry</span>
-                    <span className="text-slate-500 text-[11px]">Automatically re-attempt dispatches failed due to transient rate limits or timeout errors (up to 3 times).</span>
+                    <span className="font-semibold text-text-primary block">Automatic Exponential Backoff Retry</span>
+                    <span className="text-text-muted text-[11px]">Automatically re-attempt dispatches failed due to transient rate limits or timeout errors (up to 3 times).</span>
                   </div>
                 </label>
               </div>
@@ -345,12 +346,12 @@ export function SettingsView() {
 
           {/* Tab 4: Scheduling & Slots */}
           {activeTab === "scheduling" && (
-            <Card padding="lg" className="space-y-4">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-semibold text-slate-900">
+            <Card className="p-6 space-y-4">
+              <div className="border-b border-border pb-3">
+                <h3 className="text-sm font-semibold text-text-primary">
                   Publishing Slots & Timezone
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-text-muted mt-0.5">
                   Define automated queue intervals and timezone offsets.
                 </p>
               </div>
@@ -368,10 +369,10 @@ export function SettingsView() {
               />
 
               <div className="space-y-1.5 text-xs">
-                <span className="font-medium text-slate-700 block">Default Daily Publishing Slots (UTC)</span>
+                <span className="font-medium text-text-primary block">Default Daily Publishing Slots (UTC)</span>
                 <div className="flex flex-wrap gap-2 pt-1 font-mono text-xs">
                   {["09:00 AM", "01:00 PM", "05:00 PM", "09:00 PM"].map((time) => (
-                    <span key={time} className="px-2.5 py-1 rounded bg-slate-100 border border-slate-200 text-slate-800 font-semibold">
+                    <span key={time} className="px-2.5 py-1 rounded-md bg-surface-soft border border-border text-text-primary font-semibold">
                       {time}
                     </span>
                   ))}
@@ -382,12 +383,12 @@ export function SettingsView() {
 
           {/* Tab 5: Automation Daemon */}
           {activeTab === "automation" && (
-            <Card padding="lg" className="space-y-4">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-semibold text-slate-900">
+            <Card className="p-6 space-y-4">
+              <div className="border-b border-border pb-3">
+                <h3 className="text-sm font-semibold text-text-primary">
                   Node.js Daemon Limits
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-text-muted mt-0.5">
                   Process concurrency, queue poll delays, and resource quotas.
                 </p>
               </div>
@@ -409,12 +410,12 @@ export function SettingsView() {
 
           {/* Tab 6: Notifications & Alerts */}
           {activeTab === "notifications" && (
-            <Card padding="lg" className="space-y-4">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-semibold text-slate-900">
+            <Card className="p-6 space-y-4">
+              <div className="border-b border-border pb-3">
+                <h3 className="text-sm font-semibold text-text-primary">
                   Operational Alerts
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-text-muted mt-0.5">
                   Route error notices, token expiration warnings, and queue pause events.
                 </p>
               </div>
@@ -430,17 +431,17 @@ export function SettingsView() {
 
           {/* Tab 7: Users & Permissions */}
           {activeTab === "permissions" && (
-            <Card padding="lg" className="space-y-4">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-semibold text-slate-900">
+            <Card className="p-6 space-y-4">
+              <div className="border-b border-border pb-3">
+                <h3 className="text-sm font-semibold text-text-primary">
                   Team Members & RBAC
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-text-muted mt-0.5">
                   Manage operators, approvers, and integration admins.
                 </p>
               </div>
 
-              <div className="divide-y divide-slate-100 text-xs">
+              <div className="divide-y divide-border text-xs">
                 {[
                   { name: "Ayush Kumar", email: "ayushkumarakt@gmail.com", role: "Primary Admin & Owner" },
                   { name: "dotenvcoder", email: "dotenvcoder@gmail.com", role: "LinkedIn & X Operator" },
@@ -448,10 +449,10 @@ export function SettingsView() {
                 ].map((user) => (
                   <div key={user.email} className="py-2.5 flex items-center justify-between">
                     <div>
-                      <div className="font-semibold text-slate-900">{user.name}</div>
-                      <div className="text-slate-400 font-mono text-[11px]">{user.email}</div>
+                      <div className="font-semibold text-text-primary">{user.name}</div>
+                      <div className="text-text-muted font-mono text-[11px]">{user.email}</div>
                     </div>
-                    <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">
+                    <span className="px-2 py-0.5 rounded-md bg-surface-soft text-text-secondary font-medium border border-border">
                       {user.role}
                     </span>
                   </div>
@@ -461,6 +462,6 @@ export function SettingsView() {
           )}
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

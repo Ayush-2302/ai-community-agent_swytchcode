@@ -30,22 +30,22 @@ export function ToastProvider({ children }) {
             key={t.id}
             className={`pointer-events-auto flex items-start gap-2.5 p-3 rounded-lg border shadow-sm transition-all duration-200 ${
               t.type === "error"
-                ? "bg-rose-50 border-rose-200 text-rose-900"
+                ? "bg-danger-soft border-border text-danger"
                 : t.type === "warning"
-                ? "bg-amber-50 border-amber-200 text-amber-900"
+                ? "bg-warning-soft border-border text-warning"
                 : t.type === "info"
-                ? "bg-blue-50 border-blue-200 text-blue-900"
-                : "bg-white border-slate-200 text-slate-900"
+                ? "bg-info-soft border-border text-info"
+                : "bg-surface border-border text-text-primary"
             }`}
           >
             {t.type === "error" ? (
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-danger shrink-0 mt-0.5" />
             ) : t.type === "warning" ? (
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
             ) : t.type === "info" ? (
-              <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <Info className="w-4 h-4 text-info shrink-0 mt-0.5" />
             ) : (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
             )}
             <div className="flex-1 text-xs">
               {t.title && <div className="font-semibold mb-0.5">{t.title}</div>}
@@ -53,7 +53,7 @@ export function ToastProvider({ children }) {
             </div>
             <button
               onClick={() => removeToast(t.id)}
-              className="text-slate-400 hover:text-slate-600 p-0.5 rounded"
+              className="text-text-muted hover:text-text-primary p-0.5 rounded cursor-pointer transition-colors"
             >
               <X className="w-3.5 h-3.5" />
             </button>

@@ -13,10 +13,16 @@ import {
   Code,
   FileCode,
 } from "lucide-react";
-import { Button } from "../components/common/Button";
-import { StatusBadge } from "../components/common/Badge";
-import { Card, CardHeader } from "../components/common/Card";
-import { Modal } from "../components/common/Modal";
+import {
+  PageContainer,
+  PageHeader,
+  StatCard,
+  Card,
+  Button,
+  StatusBadge,
+  Badge,
+  Modal,
+} from "../components/ui";
 import { useToast } from "../components/common/Toast";
 import { AUTOMATION_JOBS } from "../services/mockData";
 import { socialApi } from "../api/socialApi";
@@ -108,107 +114,76 @@ export function AutomationView({ onNavigate }) {
   };
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
-            Node.js Automation Engine
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Monitor background cron daemons, CLI job runners, and autonomous dispatcher workers.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant={daemonStatus === "Running" ? "secondary" : "accent"}
-            size="sm"
-            onClick={handleToggleDaemon}
-            icon={daemonStatus === "Running" ? Pause : Play}
-          >
-            {daemonStatus === "Running" ? "Pause Daemon" : "Resume Daemon"}
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => onNavigate("logs")}
-            icon={Terminal}
-          >
-            Live Logs
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Node.js Automation Engine"
+        description="Monitor background cron daemons, CLI job runners, and autonomous dispatcher workers."
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant={daemonStatus === "Running" ? "secondary" : "primary"}
+              size="sm"
+              onClick={handleToggleDaemon}
+              icon={daemonStatus === "Running" ? Pause : Play}
+            >
+              {daemonStatus === "Running" ? "Pause Daemon" : "Resume Daemon"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onNavigate("logs")}
+              icon={Terminal}
+            >
+              Live Logs
+            </Button>
+          </div>
+        }
+      />
 
       {/* Daemon Architecture Overview Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
-          <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-            <span className="font-medium uppercase tracking-wider">Engine State</span>
-            <Activity className="w-4 h-4 text-emerald-600" />
-          </div>
-          <div className="flex items-center gap-2 mt-1">
-            <span
-              className={`w-2.5 h-2.5 rounded-full ${
-                daemonStatus === "Running" ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
-              }`}
-            />
-            <span className="text-lg font-bold font-mono text-slate-900">
-              {daemonStatus}
-            </span>
-          </div>
-          <div className="text-[10px] text-slate-400 font-mono mt-1">
-            PID: 49204 · Node v24.18.0
-          </div>
-        </div>
+        <StatCard
+          label="Engine State"
+          value={daemonStatus}
+          description="PID: 49204 · Node v24.18.0"
+          icon={Activity}
+          iconVariant={daemonStatus === "Running" ? "success" : "warning"}
+        />
 
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
-          <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-            <span className="font-medium uppercase tracking-wider">System Uptime</span>
-            <Clock className="w-4 h-4 text-blue-600" />
-          </div>
-          <div className="text-lg font-bold font-mono text-slate-900 mt-1">
-            99.98%
-          </div>
-          <div className="text-[10px] text-slate-400 font-mono mt-1">
-            18 days, 4 hours continuous
-          </div>
-        </div>
+        <StatCard
+          label="System Uptime"
+          value="99.98%"
+          description="18 days, 4 hours continuous"
+          icon={Clock}
+          iconVariant="primary"
+        />
 
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
-          <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-            <span className="font-medium uppercase tracking-wider">Worker Memory</span>
-            <Server className="w-4 h-4 text-indigo-600" />
-          </div>
-          <div className="text-lg font-bold font-mono text-slate-900 mt-1">
-            78.4 MB
-          </div>
-          <div className="text-[10px] text-slate-400 font-mono mt-1">
-            Heap limit: 512 MB
-          </div>
-        </div>
+        <StatCard
+          label="Worker Memory"
+          value="78.4 MB"
+          description="Heap limit: 512 MB"
+          icon={Server}
+          iconVariant="info"
+        />
 
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
-          <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-            <span className="font-medium uppercase tracking-wider">Cron Jobs</span>
-            <Cpu className="w-4 h-4 text-slate-700" />
-          </div>
-          <div className="text-lg font-bold font-mono text-slate-900 mt-1">
-            5 Registered
-          </div>
-          <div className="text-[10px] text-emerald-600 font-mono mt-1">
-            4 healthy, 1 warning
-          </div>
-        </div>
+        <StatCard
+          label="Cron Jobs"
+          value="5 Registered"
+          trend="4 healthy, 1 warning"
+          trendDirection="up"
+          icon={Cpu}
+          iconVariant="neutral"
+        />
       </div>
 
       {/* Automation Jobs Table */}
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-none">
-        <div className="px-4 py-3 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
-          <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+      <Card className="overflow-hidden">
+        <div className="px-4 py-3 border-b border-border bg-surface-soft flex items-center justify-between">
+          <span className="text-xs font-semibold text-text-primary uppercase tracking-wider">
             Registered Automation Jobs
           </span>
-          <span className="text-xs font-mono text-slate-500">
+          <span className="text-xs font-mono text-text-muted">
             Node.js CLI Execution Environment
           </span>
         </div>
@@ -216,7 +191,7 @@ export function AutomationView({ onNavigate }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-border bg-surface-soft text-[11px] font-semibold text-text-muted uppercase tracking-wider">
                 <th className="px-4 py-3">Job Name</th>
                 <th className="px-4 py-3">Command (CLI)</th>
                 <th className="px-4 py-3">Schedule</th>
@@ -226,36 +201,36 @@ export function AutomationView({ onNavigate }) {
                 <th className="px-4 py-3 text-right">Job Controls</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {jobs.map((job) => (
-                <tr key={job.id} className="hover:bg-slate-50/80 transition-colors">
+                <tr key={job.id} className="hover:bg-surface-hover transition-colors">
                   {/* Job Name */}
                   <td className="px-4 py-3.5">
-                    <div className="font-semibold text-slate-900">{job.name}</div>
-                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                    <div className="font-semibold text-text-primary">{job.name}</div>
+                    <div className="text-[10px] text-text-muted font-mono mt-0.5">
                       Avg: {job.avgDuration} · {job.executionsToday} runs today
                     </div>
                   </td>
 
                   {/* Command */}
-                  <td className="px-4 py-3.5 font-mono text-[11px] text-slate-700">
-                    <span className="px-2 py-1 rounded bg-slate-100 border border-slate-200">
+                  <td className="px-4 py-3.5 font-mono text-[11px] text-text-secondary">
+                    <span className="px-2 py-1 rounded-md bg-surface-soft border border-border">
                       {job.command}
                     </span>
                   </td>
 
                   {/* Schedule */}
-                  <td className="px-4 py-3.5 text-slate-600">
+                  <td className="px-4 py-3.5 text-text-secondary">
                     {job.schedule}
                   </td>
 
                   {/* Last Execution */}
-                  <td className="px-4 py-3.5 font-mono text-[11px] text-slate-600">
+                  <td className="px-4 py-3.5 font-mono text-[11px] text-text-secondary">
                     {job.lastExecution}
                   </td>
 
                   {/* Next Execution */}
-                  <td className="px-4 py-3.5 font-mono text-[11px] text-slate-500">
+                  <td className="px-4 py-3.5 font-mono text-[11px] text-text-muted">
                     {job.nextExecution}
                   </td>
 
@@ -278,7 +253,7 @@ export function AutomationView({ onNavigate }) {
                       </Button>
                       <button
                         onClick={() => handleToggleJob(job.id)}
-                        className="p-1.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                        className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-soft transition-colors cursor-pointer"
                         title={job.status === "Running" ? "Pause" : "Resume"}
                       >
                         {job.status === "Running" ? (
@@ -294,7 +269,7 @@ export function AutomationView({ onNavigate }) {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
       {/* Interactive CLI Terminal Output Modal */}
       {terminalOutput && (
@@ -311,16 +286,16 @@ export function AutomationView({ onNavigate }) {
           }
         >
           <div className="space-y-3">
-            <div className="bg-slate-900 text-slate-100 p-4 rounded-md font-mono text-xs overflow-x-auto whitespace-pre-wrap leading-relaxed border border-slate-800">
+            <div className="bg-surface-active text-text-primary p-4 rounded-lg font-mono text-xs overflow-x-auto whitespace-pre-wrap leading-relaxed border border-border">
               {terminalOutput.logs}
             </div>
-            <div className="flex items-center justify-between text-xs text-slate-500 font-mono">
+            <div className="flex items-center justify-between text-xs text-text-muted font-mono">
               <span>Status: Finished 0 errors</span>
               <span>Process Exit: 0 (OK)</span>
             </div>
           </div>
         </Modal>
       )}
-    </div>
+    </PageContainer>
   );
 }

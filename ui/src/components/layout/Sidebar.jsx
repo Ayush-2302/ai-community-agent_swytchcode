@@ -105,6 +105,7 @@ export function Sidebar({
       items: [
         { id: "automation", label: "Automation", path: "/automation", icon: Cpu, badge: "Daemon" },
         { id: "logs", label: "Activity Logs", path: "/logs", icon: Terminal },
+        { id: "design-system", label: "Design System", path: "/design-system", icon: Sparkles, badge: "UI" },
         { id: "settings", label: "Settings", path: "/settings", icon: Settings },
       ],
     },
@@ -259,17 +260,17 @@ export function Sidebar({
                     onClick={() => handleNavClick(item)}
                     className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors text-left select-none relative cursor-pointer ${
                       isActive
-                        ? "bg-slate-100 text-slate-900 font-semibold"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        ? "bg-primary-soft text-primary font-semibold"
+                        : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"
                     }`}
                   >
                     {isActive && (
-                      <span className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-slate-900 rounded-r" />
+                      <span className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-primary rounded-r" />
                     )}
                     <div className="flex items-center gap-2.5">
                       <Icon
                         className={`w-4 h-4 shrink-0 ${
-                          isActive ? "text-slate-900" : "text-slate-400"
+                          isActive ? "text-primary" : "text-text-muted"
                         }`}
                       />
                       <span>{item.label}</span>
@@ -279,8 +280,8 @@ export function Sidebar({
                       <span
                         className={`text-[10px] px-1.5 py-0.5 rounded ${
                           isActive
-                            ? "bg-white text-slate-800 border border-slate-200"
-                            : "bg-slate-100 text-slate-500"
+                            ? "bg-surface text-primary border border-primary-soft font-semibold"
+                            : "bg-surface-soft text-text-muted"
                         }`}
                       >
                         {item.count}
@@ -288,7 +289,7 @@ export function Sidebar({
                     )}
 
                     {item.badge && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary-soft text-primary border border-primary-soft font-medium">
                         {item.badge}
                       </span>
                     )}
@@ -321,14 +322,14 @@ export function Sidebar({
               onClick={() => setIsProfileMenuOpen((prev) => !prev)}
               className="flex items-center gap-2.5 text-left flex-1 min-w-0 hover:opacity-80 transition-opacity cursor-pointer"
             >
-              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-xs shrink-0">
+              <div className="w-8 h-8 rounded-full bg-primary text-text-inverse flex items-center justify-center font-semibold text-xs shrink-0">
                 AK
               </div>
               <div className="flex flex-col truncate">
-                <span className="text-xs font-semibold text-slate-800 leading-tight truncate">
+                <span className="text-xs font-semibold text-text-primary leading-tight truncate">
                   Ayush Kumar
                 </span>
-                <span className="text-[11px] text-slate-400 truncate">
+                <span className="text-[11px] text-text-muted truncate">
                   ayushkumarakt@gmail.com
                 </span>
               </div>

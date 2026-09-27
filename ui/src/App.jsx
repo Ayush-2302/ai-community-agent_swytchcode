@@ -17,6 +17,7 @@ import { AnalyticsView } from "./views/AnalyticsView";
 import { AutomationView } from "./views/AutomationView";
 import { ActivityLogsView } from "./views/ActivityLogsView";
 import { SettingsView } from "./views/SettingsView";
+import { DesignSystemView } from "./views/DesignSystemView";
 
 import { socialApi, normalizePost } from "./api/socialApi";
 
@@ -338,6 +339,7 @@ function MainApp() {
             />
 
             <Route path="/settings" element={<SettingsView />} />
+            <Route path="/design-system" element={<DesignSystemView />} />
 
             {/* Fallback to home */}
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -9,7 +9,18 @@ import {
   Calendar,
   Filter,
 } from "lucide-react";
-import { Card, CardHeader } from "../components/common/Card";
+import {
+  PageContainer,
+  PageHeader,
+  StatCard,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  Button,
+  Badge,
+} from "../components/ui";
 import { PlatformIcon } from "../components/common/PlatformIcon";
 
 export function AnalyticsView({ posts = [], analytics = null }) {
@@ -61,8 +72,10 @@ export function AnalyticsView({ posts = [], analytics = null }) {
     const baseCount = publishedPosts.length;
     return days.map((day, idx) => ({
       date: day,
+      day,
       count: baseCount > 0 ? Math.max(1, Math.round(baseCount / 7 + (idx % 3))) : 0,
       reach: totalViews > 0 ? Math.round(totalViews / 7) : 0,
+      impressions: totalViews > 0 ? Math.round(totalViews / 7 * 1.8) : 0,
     }));
   }, [publishedPosts, totalViews]);
 
@@ -76,9 +89,9 @@ export function AnalyticsView({ posts = [], analytics = null }) {
     const keys = Object.keys(platformCounts);
     if (keys.length === 0) {
       return [
-        { platform: "X", postsCount: 0, impressions: "0", engRate: "0.0%", growth: "+0%" },
-        { platform: "Telegram", postsCount: 0, impressions: "0", engRate: "0.0%", growth: "+0%" },
-        { platform: "Notion", postsCount: 0, impressions: "0", engRate: "0.0%", growth: "+0%" },
+        { platform: "X", posts: 0, postsCount: 0, reach: "0", impressions: "0", engagement: "0.0%", engRate: "0.0%", growth: "+0%" },
+        { platform: "Telegram", posts: 0, postsCount: 0, reach: "0", impressions: "0", engagement: "0.0%", engRate: "0.0%", growth: "+0%" },
+        { platform: "Notion", posts: 0, postsCount: 0, reach: "0", impressions: "0", engagement: "0.0%", engRate: "0.0%", growth: "+0%" },
       ];
     }
 
@@ -86,11 +99,16 @@ export function AnalyticsView({ posts = [], analytics = null }) {
       const count = platformCounts[plat];
       const platViews = posts.filter((p) => p.platform === plat).reduce((a, b) => a + (b.views || 0), 0);
       const platLikes = posts.filter((p) => p.platform === plat).reduce((a, b) => a + (b.likes || 0), 0);
+      const reachVal = platViews > 1000 ? `${(platViews / 1000).toFixed(1)}K` : platViews.toString();
+      const engVal = platViews > 0 ? `${((platLikes / platViews) * 100).toFixed(1)}%` : "0.0%";
       return {
         platform: plat,
+        posts: count,
         postsCount: count,
-        impressions: platViews > 1000 ? `${(platViews / 1000).toFixed(1)}K` : platViews.toString(),
-        engRate: platViews > 0 ? `${((platLikes / platViews) * 100).toFixed(1)}%` : "0.0%",
+        reach: reachVal,
+        impressions: reachVal,
+        engagement: engVal,
+        engRate: engVal,
         growth: "+0%",
       };
     });
@@ -100,153 +118,119 @@ export function AnalyticsView({ posts = [], analytics = null }) {
   const topPosts = posts.filter((p) => p.status === "Published" || p.views > 0);
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
-            Performance Analytics
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Operational throughput, audience reach, clicks, and cross-network engagement metrics.
-          </p>
-        </div>
+      <PageHeader
+        title="Performance Analytics"
+        description="Operational throughput, audience reach, clicks, and cross-network engagement metrics."
+        actions={
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedPlatform}
+              onChange={(e) => setSelectedPlatform(e.target.value)}
+              className="h-8 text-xs bg-surface border border-border rounded-lg px-2.5 text-text-primary focus:outline-none focus:border-primary"
+            >
+              <option value="All">All Platforms</option>
+              <option value="X">X (Twitter)</option>
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="Instagram">Instagram</option>
+              <option value="Telegram">Telegram</option>
+              <option value="Facebook">Facebook</option>
+            </select>
 
-        {/* Filters */}
-        <div className="flex items-center gap-2">
-          <select
-            value={selectedPlatform}
-            onChange={(e) => setSelectedPlatform(e.target.value)}
-            className="h-8 text-xs bg-white border border-slate-200 rounded px-2.5 text-slate-700 focus:outline-none focus:border-slate-400"
-          >
-            <option value="All">All Platforms</option>
-            <option value="X">X (Twitter)</option>
-            <option value="LinkedIn">LinkedIn</option>
-            <option value="Instagram">Instagram</option>
-            <option value="Telegram">Telegram</option>
-            <option value="Facebook">Facebook</option>
-          </select>
-
-          <div className="flex items-center p-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs">
-            {["7d", "30d", "90d"].map((r) => (
-              <button
-                key={r}
-                onClick={() => setDateRange(r)}
-                className={`px-2.5 py-1 rounded font-medium transition-colors ${
-                  dateRange === r
-                    ? "bg-white text-slate-900 font-semibold"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                {r.toUpperCase()}
-              </button>
-            ))}
+            <div className="flex items-center p-0.5 bg-surface-soft border border-border rounded-lg text-xs">
+              {["7d", "30d", "90d"].map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setDateRange(r)}
+                  className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                    dateRange === r
+                      ? "bg-surface text-text-primary font-semibold shadow-subtle"
+                      : "text-text-muted hover:text-text-primary"
+                  }`}
+                >
+                  {r.toUpperCase()}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      </div>
+        }
+      />
 
-      {/* 6 Key Operational Metrics */}
+      {/* 6 Key Operational Metrics with StatCard */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="bg-white border border-slate-200 rounded-lg p-3">
-          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
-            Posts Published
-          </div>
-          <div className="text-xl font-bold font-mono text-slate-900">
-            {overview.postsPublished}
-          </div>
-          <div className="text-[10px] text-emerald-600 mt-1">
-            {overview.postsPublishedChange}
-          </div>
-        </div>
-
-        <div className="bg-white border border-slate-200 rounded-lg p-3">
-          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
-            Total Reach
-          </div>
-          <div className="text-xl font-bold font-mono text-slate-900">
-            {overview.totalReach}
-          </div>
-          <div className="text-[10px] text-emerald-600 mt-1">
-            {overview.totalReachChange}
-          </div>
-        </div>
-
-        <div className="bg-white border border-slate-200 rounded-lg p-3">
-          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
-            Impressions
-          </div>
-          <div className="text-xl font-bold font-mono text-slate-900">
-            {overview.impressions}
-          </div>
-          <div className="text-[10px] text-emerald-600 mt-1">
-            {overview.impressionsChange}
-          </div>
-        </div>
-
-        <div className="bg-white border border-slate-200 rounded-lg p-3">
-          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
-            Engagement
-          </div>
-          <div className="text-xl font-bold font-mono text-slate-900">
-            {overview.totalEngagement}
-          </div>
-          <div className="text-[10px] text-emerald-600 mt-1">
-            {overview.totalEngagementChange}
-          </div>
-        </div>
-
-        <div className="bg-white border border-slate-200 rounded-lg p-3">
-          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
-            Clicks
-          </div>
-          <div className="text-xl font-bold font-mono text-slate-900">
-            {overview.clicks}
-          </div>
-          <div className="text-[10px] text-emerald-600 mt-1">
-            {overview.clicksChange}
-          </div>
-        </div>
-
-        <div className="bg-white border border-slate-200 rounded-lg p-3">
-          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
-            Engagement Rate
-          </div>
-          <div className="text-xl font-bold font-mono text-slate-900">
-            {overview.avgEngagementRate}
-          </div>
-          <div className="text-[10px] text-emerald-600 mt-1">
-            {overview.avgEngagementRateChange}
-          </div>
-        </div>
+        <StatCard
+          label="Posts Published"
+          value={overview.postsPublished}
+          trend={overview.postsPublishedChange}
+          trendDirection={overview.postsPublished > 0 ? "up" : "neutral"}
+          icon={BarChart3}
+        />
+        <StatCard
+          label="Total Reach"
+          value={overview.totalReach}
+          trend={overview.totalReachChange}
+          trendDirection="up"
+          icon={Users}
+        />
+        <StatCard
+          label="Impressions"
+          value={overview.impressions}
+          trend={overview.impressionsChange}
+          trendDirection="up"
+          icon={Eye}
+        />
+        <StatCard
+          label="Engagement"
+          value={overview.totalEngagement}
+          trend={overview.totalEngagementChange}
+          trendDirection="up"
+          icon={TrendingUp}
+        />
+        <StatCard
+          label="Clicks"
+          value={overview.clicks}
+          trend={overview.clicksChange}
+          trendDirection="up"
+          icon={MousePointerClick}
+        />
+        <StatCard
+          label="Engagement Rate"
+          value={overview.avgEngagementRate}
+          trend={overview.avgEngagementRateChange}
+          trendDirection="neutral"
+          icon={Share2}
+        />
       </div>
 
       {/* Main Charts: Daily Publishing Velocity & Platform Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Publishing Velocity Bar Chart (7 cols) */}
         <div className="lg:col-span-7">
-          <Card padding="md">
+          <Card className="p-5">
             <CardHeader
               title="Publishing Volume & Impressions"
-              subtitle="Daily dispatched volume and aggregate impression trends"
+              description="Daily dispatched volume and aggregate impression trends"
             />
 
             <div className="pt-4">
-              <div className="flex items-end justify-between h-44 gap-3 pb-2 px-2 border-b border-slate-100">
+              <div className="flex items-end justify-between h-44 gap-3 pb-2 px-2 border-b border-border">
                 {velocity.map((item) => {
-                  const barHeight = `${(item.impressions / 80000) * 100}%`;
+                  const maxImp = Math.max(...velocity.map(v => v.impressions), 100);
+                  const barHeight = `${Math.min(100, Math.max(12, (item.impressions / maxImp) * 100))}%`;
                   return (
                     <div
                       key={item.day}
                       className="flex-1 flex flex-col items-center h-full justify-end group"
                     >
-                      <span className="text-[10px] font-mono text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity mb-1">
-                        {(item.impressions / 1000).toFixed(0)}k
+                      <span className="text-[10px] font-mono text-text-muted opacity-0 group-hover:opacity-100 transition-opacity mb-1">
+                        {item.impressions}
                       </span>
                       <div
                         style={{ height: barHeight }}
-                        className="w-full max-w-[32px] bg-slate-800 rounded-t group-hover:bg-blue-600 transition-colors"
+                        className="w-full max-w-[28px] bg-primary/70 rounded-t-sm group-hover:bg-primary transition-colors"
                       />
-                      <span className="text-xs font-medium text-slate-600 mt-2">
+                      <span className="text-xs font-medium text-text-muted mt-2">
                         {item.day}
                       </span>
                     </div>
@@ -254,11 +238,13 @@ export function AnalyticsView({ posts = [], analytics = null }) {
                 })}
               </div>
 
-              <div className="flex items-center justify-between text-xs text-slate-500 pt-3">
+              <div className="flex items-center justify-between text-xs text-text-muted pt-3">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 bg-slate-800 rounded-sm" /> Impressions per day
+                  <span className="w-2.5 h-2.5 bg-primary rounded-sm" /> Impressions per day
                 </span>
-                <span className="font-mono text-slate-700">Total period: 345,000 views</span>
+                <span className="font-mono text-text-secondary">
+                  Active window: {overview.impressions} impressions
+                </span>
               </div>
             </div>
           </Card>
@@ -266,26 +252,26 @@ export function AnalyticsView({ posts = [], analytics = null }) {
 
         {/* Right: Platform Performance Comparison (5 cols) */}
         <div className="lg:col-span-5">
-          <Card padding="md">
+          <Card className="p-5">
             <CardHeader
               title="Channel Breakdown"
-              subtitle="Audience reach and interaction rates by provider"
+              description="Audience reach and interaction rates by provider"
             />
 
-            <div className="space-y-3 pt-1 text-xs">
+            <div className="space-y-3 pt-2 text-xs">
               {platformStats.map((stat) => (
-                <div key={stat.platform} className="p-2.5 rounded bg-slate-50 border border-slate-100">
+                <div key={stat.platform} className="p-3 rounded-lg bg-surface-soft border border-border">
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                      <PlatformIcon platform={stat.platform} className="w-4 h-4 text-slate-700" />
-                      <span className="font-semibold text-slate-900">{stat.platform}</span>
+                      <PlatformIcon platform={stat.platform} className="w-4 h-4 text-text-secondary" />
+                      <span className="font-semibold text-text-primary">{stat.platform}</span>
                     </div>
-                    <span className="font-mono font-bold text-slate-800">{stat.reach} reach</span>
+                    <span className="font-mono font-bold text-text-primary">{stat.reach} reach</span>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                  <div className="flex items-center justify-between text-[11px] text-text-muted font-mono">
                     <span>{stat.posts} posts published</span>
-                    <span className="text-emerald-700 font-medium">{stat.engagement} engagement</span>
+                    <span className="text-success font-medium">{stat.engagement} engagement</span>
                   </div>
                 </div>
               ))}
@@ -295,16 +281,16 @@ export function AnalyticsView({ posts = [], analytics = null }) {
       </div>
 
       {/* Top Performing Posts Table */}
-      <Card padding="md">
+      <Card className="p-5">
         <CardHeader
           title="Top Performing Content"
-          subtitle="Highest engagement dispatches across all connected profiles"
+          description="Highest engagement dispatches across all connected profiles"
         />
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+        <div className="overflow-x-auto mt-2">
+          <table className="w-full text-left border-collapse text-xs min-w-[650px]">
             <thead>
-              <tr className="border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-border text-[11px] font-semibold text-text-muted uppercase tracking-wider bg-surface-soft">
                 <th className="py-2.5 px-3">Post Title</th>
                 <th className="py-2.5 px-3">Platform</th>
                 <th className="py-2.5 px-3">Account</th>
@@ -313,36 +299,44 @@ export function AnalyticsView({ posts = [], analytics = null }) {
                 <th className="py-2.5 px-3 font-mono">Shares</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {topPosts.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50">
-                  <td className="py-2.5 px-3 font-medium text-slate-900 max-w-sm truncate">
-                    {p.title}
-                  </td>
-                  <td className="py-2.5 px-3">
-                    <div className="flex items-center gap-1.5 text-slate-700">
-                      <PlatformIcon platform={p.platform} className="w-3.5 h-3.5 text-slate-500" />
-                      <span>{p.platform}</span>
-                    </div>
-                  </td>
-                  <td className="py-2.5 px-3 font-mono text-[11px] text-slate-600">
-                    {p.account}
-                  </td>
-                  <td className="py-2.5 px-3 font-mono font-semibold text-slate-900">
-                    {p.views.toLocaleString()}
-                  </td>
-                  <td className="py-2.5 px-3 font-mono text-slate-700">
-                    {p.likes.toLocaleString()}
-                  </td>
-                  <td className="py-2.5 px-3 font-mono text-slate-700">
-                    {p.reposts.toLocaleString()}
+            <tbody className="divide-y divide-border">
+              {topPosts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-6 text-center text-text-muted">
+                    No published posts to display yet.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                topPosts.map((p) => (
+                  <tr key={p.id} className="hover:bg-surface-hover transition-colors">
+                    <td className="py-2.5 px-3 font-medium text-text-primary max-w-sm truncate">
+                      {p.title}
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <div className="flex items-center gap-1.5 text-text-secondary">
+                        <PlatformIcon platform={p.platform} className="w-3.5 h-3.5 text-text-muted" />
+                        <span>{p.platform}</span>
+                      </div>
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-[11px] text-text-muted">
+                      {p.account}
+                    </td>
+                    <td className="py-2.5 px-3 font-mono font-semibold text-text-primary">
+                      {p.views.toLocaleString()}
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-text-secondary">
+                      {p.likes.toLocaleString()}
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-text-secondary">
+                      {p.reposts.toLocaleString()}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

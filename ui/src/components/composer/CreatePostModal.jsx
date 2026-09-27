@@ -1,8 +1,5 @@
 import React, { useState } from "react";
-import { Modal } from "../common/Modal";
-import { Button } from "../common/Button";
-import { Input, Textarea } from "../common/Input";
-import { Select } from "../common/Select";
+import { Modal, Button, Input, Textarea, Select, Badge } from "../ui";
 import { PlatformIcon } from "../common/PlatformIcon";
 import { RealisticPlatformPreview } from "./RealisticPlatformPreview";
 import { useToast } from "../common/Toast";
@@ -192,7 +189,7 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
         <div className="lg:col-span-7 space-y-4">
           {/* Target Platforms */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 block mb-1.5">
+            <label className="text-xs font-semibold text-text-primary block mb-1.5">
               Target Platforms
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -203,10 +200,10 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
                     key={p.id}
                     type="button"
                     onClick={() => togglePlatform(p.id)}
-                    className={`flex flex-col items-center justify-center p-2 rounded-md border text-xs transition-all flex-1 min-w-[64px] ${
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg border text-xs transition-all flex-1 min-w-[64px] cursor-pointer ${
                       isSelected
-                        ? "bg-slate-900 border-slate-900 text-white font-medium shadow-none"
-                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                        ? "bg-primary-soft text-primary font-semibold border-primary/40 shadow-subtle"
+                        : "bg-surface border-border text-text-secondary hover:bg-surface-soft"
                     }`}
                   >
                     <PlatformIcon platform={p.id} className="w-4 h-4 mb-1" />
@@ -250,16 +247,16 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
           {/* Post Content Editor */}
           <div className="relative">
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-semibold text-slate-700">
+              <label className="text-xs font-semibold text-text-primary">
                 Post Content
               </label>
               <div
                 className={`text-[11px] font-mono ${
                   isOverLimit
-                    ? "text-rose-600 font-bold"
+                    ? "text-danger font-bold"
                     : charsRemaining < 20
-                    ? "text-amber-600 font-semibold"
-                    : "text-slate-400"
+                    ? "text-warning font-semibold"
+                    : "text-text-muted"
                 }`}
               >
                 {charsRemaining} chars left ({previewPlatform})
@@ -270,15 +267,15 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
               placeholder="What do you want to publish? Share announcements, links, releases, or insights..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className={`w-full rounded-md border text-sm text-slate-900 bg-white placeholder:text-slate-400 p-3 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-400 transition-colors ${
-                isOverLimit ? "border-rose-400 focus:ring-rose-200" : "border-slate-200"
+              className={`w-full rounded-lg border text-sm text-text-primary bg-surface placeholder:text-text-muted p-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors ${
+                isOverLimit ? "border-danger focus:ring-danger/20" : "border-border"
               }`}
             />
           </div>
 
           {/* Media Attachment */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 block">
+            <label className="text-xs font-semibold text-text-primary block">
               Media Attachment (Optional)
             </label>
             <div className="flex gap-2">
@@ -301,14 +298,14 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
             </div>
 
             {/* Quick Sample Presets */}
-            <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-500">
-              <span className="text-slate-400">Sample media:</span>
+            <div className="flex items-center gap-2 pt-1 text-[11px] text-text-muted">
+              <span>Sample media:</span>
               {sampleImages.map((s) => (
                 <button
                   key={s.label}
                   type="button"
                   onClick={() => setMediaUrl(s.url)}
-                  className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] transition-colors"
+                  className="px-2 py-0.5 rounded-md bg-surface-soft hover:bg-primary-soft hover:text-primary text-text-secondary text-[10px] transition-colors cursor-pointer border border-border"
                 >
                   {s.label}
                 </button>
@@ -317,18 +314,18 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
           </div>
 
           {/* Scheduling & Delivery Strategy */}
-          <div className="pt-2 border-t border-slate-100">
-            <label className="text-xs font-semibold text-slate-700 block mb-2">
+          <div className="pt-2 border-t border-border">
+            <label className="text-xs font-semibold text-text-primary block mb-2">
               Delivery Schedule
             </label>
             <div className="grid grid-cols-3 gap-2 mb-3">
               <button
                 type="button"
                 onClick={() => setSchedulingMode("queue")}
-                className={`py-2 px-3 rounded-md border text-xs font-medium text-center transition-all ${
+                className={`py-2 px-3 rounded-lg border text-xs font-medium text-center transition-all cursor-pointer ${
                   schedulingMode === "queue"
-                    ? "bg-slate-900 border-slate-900 text-white"
-                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                    ? "bg-primary-soft text-primary font-semibold border-primary/40 shadow-subtle"
+                    : "bg-surface border-border text-text-secondary hover:bg-surface-soft"
                 }`}
               >
                 Add to Queue
@@ -336,10 +333,10 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
               <button
                 type="button"
                 onClick={() => setSchedulingMode("schedule")}
-                className={`py-2 px-3 rounded-md border text-xs font-medium text-center transition-all ${
+                className={`py-2 px-3 rounded-lg border text-xs font-medium text-center transition-all cursor-pointer ${
                   schedulingMode === "schedule"
-                    ? "bg-slate-900 border-slate-900 text-white"
-                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                    ? "bg-primary-soft text-primary font-semibold border-primary/40 shadow-subtle"
+                    : "bg-surface border-border text-text-secondary hover:bg-surface-soft"
                 }`}
               >
                 Specific Time
@@ -347,10 +344,10 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
               <button
                 type="button"
                 onClick={() => setSchedulingMode("now")}
-                className={`py-2 px-3 rounded-md border text-xs font-medium text-center transition-all ${
+                className={`py-2 px-3 rounded-lg border text-xs font-medium text-center transition-all cursor-pointer ${
                   schedulingMode === "now"
-                    ? "bg-slate-900 border-slate-900 text-white"
-                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                    ? "bg-primary-soft text-primary font-semibold border-primary/40 shadow-subtle"
+                    : "bg-surface border-border text-text-secondary hover:bg-surface-soft"
                 }`}
               >
                 Publish Now
@@ -358,7 +355,7 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
             </div>
 
             {schedulingMode === "schedule" && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-md border border-slate-200 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-surface-soft rounded-lg border border-border text-xs">
                 <Input
                   label="Date"
                   type="date"
@@ -389,8 +386,8 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
 
         {/* Right Column: Platform Preview (5 cols) */}
         <div className="lg:col-span-5 flex flex-col space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-            <span className="text-xs font-semibold text-slate-700">
+          <div className="flex items-center justify-between border-b border-border pb-2">
+            <span className="text-xs font-semibold text-text-primary">
               Live Channel Preview
             </span>
 
@@ -401,10 +398,10 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
                   key={plat}
                   type="button"
                   onClick={() => setPreviewPlatform(plat)}
-                  className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
+                  className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
                     previewPlatform === plat
-                      ? "bg-slate-900 text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      ? "bg-primary-soft text-primary font-semibold border border-primary/30"
+                      : "bg-surface-soft text-text-muted hover:text-text-primary hover:bg-surface"
                   }`}
                 >
                   {plat}
@@ -413,7 +410,7 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
             </div>
           </div>
 
-          <div className="flex-1 bg-slate-50/70 p-3 rounded-md border border-slate-200 overflow-y-auto">
+          <div className="flex-1 bg-surface-soft p-3 rounded-lg border border-border overflow-y-auto">
             <RealisticPlatformPreview
               platform={previewPlatform}
               content={content}
@@ -423,7 +420,7 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, initialDate = 
           </div>
 
           {/* Delivery Note */}
-          <div className="text-[11px] text-slate-400 bg-white p-2.5 rounded border border-slate-200">
+          <div className="text-[11px] text-text-muted bg-surface p-2.5 rounded-lg border border-border">
             Dispatches via Swytchcode Router to verified platform endpoints. Media is hosted and cached automatically on CDN.
           </div>
         </div>

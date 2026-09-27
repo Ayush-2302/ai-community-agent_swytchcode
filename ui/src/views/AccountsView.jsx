@@ -17,14 +17,20 @@ import {
   Check,
   X as XIcon,
 } from "lucide-react";
-import { Button } from "../components/common/Button";
-import { StatusBadge } from "../components/common/Badge";
+import {
+  PageContainer,
+  PageHeader,
+  Button,
+  StatusBadge,
+  Modal,
+  Input,
+  Select,
+  EmptyState,
+  Card,
+  Badge,
+} from "../components/ui";
 import { PlatformIcon } from "../components/common/PlatformIcon";
-import { Modal } from "../components/common/Modal";
-import { Input } from "../components/common/Input";
-import { Select } from "../components/common/Select";
 import { useToast } from "../components/common/Toast";
-import { EmptyState } from "../components/common/EmptyState";
 import { swytchcode } from "../services/swytchcode";
 import { socialApi } from "../api/socialApi";
 
@@ -246,238 +252,224 @@ export function AccountsView({ accounts = [], onUpdateAccount, onRefresh }) {
   };
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-        <div>
+      <PageHeader
+        title="Connected Accounts"
+        description="Real authenticated platform tokens, webhooks, and rate limiters linked via Swytchcode and environment configs."
+        badge={
+          <Badge variant="success" size="sm" dot>
+            Live Vault
+          </Badge>
+        }
+        actions={
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
-              Connected Accounts
-            </h2>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <ShieldCheck className="w-3 h-3" />
-              Live Vault
-            </span>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                accountList.forEach((acc) => handleSyncAccount(acc));
+              }}
+              icon={RefreshCw}
+            >
+              Sync All
+            </Button>
+
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setIsOmniModalOpen(true)}
+              icon={Zap}
+            >
+              Test Swytchcode APIs
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsConnectModalOpen(true)}
+              icon={Plus}
+            >
+              Connect Account
+            </Button>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Real authenticated platform tokens, webhooks, and rate limiters linked via Swytchcode and environment configs.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              accountList.forEach((acc) => handleSyncAccount(acc));
-            }}
-            icon={RefreshCw}
-          >
-            Sync All
-          </Button>
-
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsOmniModalOpen(true)}
-            icon={Zap}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-700 shadow-sm"
-          >
-            Test Swytchcode APIs
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setIsConnectModalOpen(true)}
-            icon={Plus}
-          >
-            Connect Account
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Real Platform Status Cards (Quick Glances) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between hover:border-slate-300 transition-colors">
+        <Card className="p-3.5 flex items-center justify-between hover:border-border-hover transition-colors">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
-              <PlatformIcon platform="Telegram" className="w-4 h-4 text-sky-500" />
+            <div className="w-9 h-9 rounded-lg bg-surface-soft border border-border flex items-center justify-center shrink-0">
+              <PlatformIcon platform="Telegram" className="w-4 h-4 text-info" />
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-slate-900 truncate">Telegram Bot API</div>
-              <div className="text-[11px] text-slate-500 font-mono truncate">Chat ID: 8476056272</div>
-              <div className="text-[10px] text-blue-600 font-mono truncate">ayushkumarakt@gmail.com</div>
+              <div className="text-xs font-semibold text-text-primary truncate">Telegram Bot API</div>
+              <div className="text-[11px] text-text-muted font-mono truncate">Chat ID: 8476056272</div>
+              <div className="text-[10px] text-primary font-mono truncate">ayushkumarakt@gmail.com</div>
             </div>
           </div>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0">
-            Active
-          </span>
-        </div>
+          <Badge variant="success" size="sm">Active</Badge>
+        </Card>
 
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between hover:border-slate-300 transition-colors">
+        <Card className="p-3.5 flex items-center justify-between hover:border-border-hover transition-colors">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
-              <PlatformIcon platform="Notion" className="w-4 h-4 text-slate-900" />
+            <div className="w-9 h-9 rounded-lg bg-surface-soft border border-border flex items-center justify-center shrink-0">
+              <PlatformIcon platform="Notion" className="w-4 h-4 text-text-primary" />
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-slate-900 truncate">Notion Workspace</div>
-              <div className="text-[11px] text-slate-500 font-mono truncate">Page: e24ab6e20080...</div>
-              <div className="text-[10px] text-blue-600 font-mono truncate">ayushkumarakt@gmail.com</div>
+              <div className="text-xs font-semibold text-text-primary truncate">Notion Workspace</div>
+              <div className="text-[11px] text-text-muted font-mono truncate">Page: e24ab6e20080...</div>
+              <div className="text-[10px] text-primary font-mono truncate">ayushkumarakt@gmail.com</div>
             </div>
           </div>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0">
-            Active
-          </span>
-        </div>
+          <Badge variant="success" size="sm">Active</Badge>
+        </Card>
 
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between hover:border-slate-300 transition-colors">
+        <Card className="p-3.5 flex items-center justify-between hover:border-border-hover transition-colors">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
-              <PlatformIcon platform="X" className="w-4 h-4 text-slate-900" />
+            <div className="w-9 h-9 rounded-lg bg-surface-soft border border-border flex items-center justify-center shrink-0">
+              <PlatformIcon platform="X" className="w-4 h-4 text-text-primary" />
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-slate-900 truncate">X (Twitter) Feed</div>
-              <div className="text-[11px] text-slate-500 font-mono truncate">@developer_stream</div>
-              <div className="text-[10px] text-blue-600 font-mono truncate">ayushkumarakt@gmail.com</div>
+              <div className="text-xs font-semibold text-text-primary truncate">X (Twitter) Feed</div>
+              <div className="text-[11px] text-text-muted font-mono truncate">@developer_stream</div>
+              <div className="text-[10px] text-primary font-mono truncate">ayushkumarakt@gmail.com</div>
             </div>
           </div>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0">
-            Active
-          </span>
-        </div>
+          <Badge variant="success" size="sm">Active</Badge>
+        </Card>
 
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between hover:border-slate-300 transition-colors">
+        <Card className="p-3.5 flex items-center justify-between hover:border-border-hover transition-colors">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-surface-soft border border-border flex items-center justify-center shrink-0">
               <PlatformIcon platform="LinkedIn" className="w-4 h-4 text-[#0a66c2]" />
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-slate-900 truncate">LinkedIn Profile</div>
-              <div className="text-[11px] text-slate-500 font-mono truncate">dotenvcoder</div>
-              <div className="text-[10px] text-blue-600 font-mono truncate">dotenvcoder@gmail.com</div>
+              <div className="text-xs font-semibold text-text-primary truncate">LinkedIn Profile</div>
+              <div className="text-[11px] text-text-muted font-mono truncate">dotenvcoder</div>
+              <div className="text-[10px] text-primary font-mono truncate">dotenvcoder@gmail.com</div>
             </div>
           </div>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0">
-            Active
-          </span>
-        </div>
+          <Badge variant="success" size="sm">Active</Badge>
+        </Card>
 
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between hover:border-slate-300 transition-colors">
+        <Card className="p-3.5 flex items-center justify-between hover:border-border-hover transition-colors">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-surface-soft border border-border flex items-center justify-center shrink-0">
               <PlatformIcon platform="Instagram" className="w-4 h-4 text-rose-500" />
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-slate-900 truncate">Instagram / Reels</div>
-              <div className="text-[11px] text-slate-500 font-mono truncate">kanhacode</div>
-              <div className="text-[10px] text-blue-600 font-mono truncate">ankithelpadi143ayush@gmail.com</div>
+              <div className="text-xs font-semibold text-text-primary truncate">Instagram / Reels</div>
+              <div className="text-[11px] text-text-muted font-mono truncate">kanhacode</div>
+              <div className="text-[10px] text-primary font-mono truncate">ankithelpadi143ayush@gmail.com</div>
             </div>
           </div>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0">
-            Active
-          </span>
-        </div>
+          <Badge variant="success" size="sm">Active</Badge>
+        </Card>
       </div>
 
       {/* Account Table / Cards */}
-      <div className="bg-white border border-slate-200 rounded-lg overflow-x-auto shadow-none">
-        <table className="w-full text-left border-collapse text-xs min-w-[750px]">
-          <thead>
-            <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              <th className="px-4 py-3">Platform</th>
-              <th className="px-4 py-3">Account & Handle</th>
-              <th className="px-4 py-3">Account Email</th>
-              <th className="px-4 py-3">Connection Status</th>
-              <th className="px-4 py-3">Rate Limits</th>
-              <th className="px-4 py-3">Auth Gateway</th>
-              <th className="px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {accountList.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="py-8">
-                  <EmptyState
-                    title="No accounts connected"
-                    description="Connect your social profiles or messaging channels via Swytchcode to enable automated publishing."
-                    actionLabel="Connect Account"
-                    onAction={() => setIsConnectModalOpen(true)}
-                  />
-                </td>
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs min-w-[750px]">
+            <thead>
+              <tr className="border-b border-border bg-surface-soft text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+                <th className="px-4 py-3">Platform</th>
+                <th className="px-4 py-3">Account & Handle</th>
+                <th className="px-4 py-3">Account Email</th>
+                <th className="px-4 py-3">Connection Status</th>
+                <th className="px-4 py-3">Rate Limits</th>
+                <th className="px-4 py-3">Auth Gateway</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
-            ) : (
-              accountList.map((acc) => (
-                <tr key={acc.id} className="hover:bg-slate-50/70 transition-colors">
-                  {/* Platform */}
-                  <td className="px-4 py-3.5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
-                        <PlatformIcon platform={acc.platform} className="w-4 h-4 text-slate-700" />
-                      </div>
-                      <span className="font-semibold text-slate-900">{acc.platform}</span>
-                    </div>
-                  </td>
-
-                  {/* Account & Handle */}
-                  <td className="px-4 py-3.5">
-                    <div className="font-medium text-slate-900">{acc.displayName}</div>
-                    <div className="text-[11px] font-mono text-slate-500 mt-0.5">{acc.handle}</div>
-                  </td>
-
-                  {/* Email */}
-                  <td className="px-4 py-3.5">
-                    <span className="font-mono text-[11px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                      {getAccountEmail(acc)}
-                    </span>
-                  </td>
-
-                  {/* Status */}
-                  <td className="px-4 py-3.5">
-                    <StatusBadge status={acc.status || "Connected"} />
-                    <div className="text-[10px] text-slate-400 mt-0.5">{acc.tokenExpiry}</div>
-                  </td>
-
-                  {/* Rate Limits */}
-                  <td className="px-4 py-3.5 font-mono text-[11px] text-slate-600">
-                    {acc.rateLimitRemaining || "Standard Tier"}
-                  </td>
-
-                  {/* Gateway */}
-                  <td className="px-4 py-3.5 text-slate-600 text-[11px]">
-                    <span className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200">
-                      {acc.managedVia || "Swytchcode Provider"}
-                    </span>
-                  </td>
-
-                  {/* Actions */}
-                  <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => handleSyncAccount(acc)}
-                        disabled={syncingId === acc.id}
-                        icon={RefreshCw}
-                      >
-                        {syncingId === acc.id ? "Syncing..." : "Sync"}
-                      </Button>
-                      <button
-                        title="Disconnect Account"
-                        disabled={deletingId === acc.id}
-                        onClick={() => handleDeleteAccount(acc)}
-                        className="p-1.5 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {accountList.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-8">
+                    <EmptyState
+                      title="No accounts connected"
+                      description="Connect your social profiles or messaging channels via Swytchcode to enable automated publishing."
+                      action={<Button onClick={() => setIsConnectModalOpen(true)}>Connect Account</Button>}
+                    />
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : (
+                accountList.map((acc) => (
+                  <tr key={acc.id} className="hover:bg-surface-hover transition-colors">
+                    {/* Platform */}
+                    <td className="px-4 py-3.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded border border-border bg-surface-soft flex items-center justify-center shrink-0">
+                          <PlatformIcon platform={acc.platform} className="w-4 h-4 text-text-secondary" />
+                        </div>
+                        <span className="font-semibold text-text-primary">{acc.platform}</span>
+                      </div>
+                    </td>
+
+                    {/* Account & Handle */}
+                    <td className="px-4 py-3.5">
+                      <div className="font-medium text-text-primary">{acc.displayName}</div>
+                      <div className="text-[11px] font-mono text-text-muted mt-0.5">{acc.handle}</div>
+                    </td>
+
+                    {/* Email */}
+                    <td className="px-4 py-3.5">
+                      <span className="font-mono text-[11px] text-primary bg-primary-soft px-2 py-0.5 rounded border border-border-light">
+                        {getAccountEmail(acc)}
+                      </span>
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-4 py-3.5">
+                      <StatusBadge status={acc.status || "Connected"} />
+                      <div className="text-[10px] text-text-muted mt-0.5">{acc.tokenExpiry}</div>
+                    </td>
+
+                    {/* Rate Limits */}
+                    <td className="px-4 py-3.5 font-mono text-[11px] text-text-secondary">
+                      {acc.rateLimitRemaining || "Standard Tier"}
+                    </td>
+
+                    {/* Gateway */}
+                    <td className="px-4 py-3.5 text-text-secondary text-[11px]">
+                      <span className="px-1.5 py-0.5 rounded bg-surface-soft border border-border">
+                        {acc.managedVia || "Swytchcode Provider"}
+                      </span>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleSyncAccount(acc)}
+                          disabled={syncingId === acc.id}
+                          icon={RefreshCw}
+                        >
+                          {syncingId === acc.id ? "Syncing..." : "Sync"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          title="Disconnect Account"
+                          disabled={deletingId === acc.id}
+                          onClick={() => handleDeleteAccount(acc)}
+                          className="text-text-muted hover:text-danger hover:bg-danger-soft p-1.5"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       {/* Swytchcode Interactive API Testing Modal */}
       <Modal
@@ -496,7 +488,6 @@ export function AccountsView({ accounts = [], onUpdateAccount, onRefresh }) {
               onClick={handleRunOmniTest}
               disabled={isOmniTesting}
               icon={Zap}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
             >
               {isOmniTesting ? "Executing Tools..." : "Run Multi-Channel Test"}
             </Button>
@@ -504,12 +495,12 @@ export function AccountsView({ accounts = [], onUpdateAccount, onRefresh }) {
         }
       >
         <div className="space-y-4 text-xs">
-          <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-lg text-indigo-900 leading-relaxed">
-            <strong>Hackathon Agent Pipeline:</strong> This test executes 3 Swytchcode canonical tools in a single autonomous pipeline:
-            <ul className="list-disc list-inside mt-1 font-mono text-[11px] text-indigo-800 space-y-0.5">
-              <li>Tool 1: <code className="font-semibold">x_v2.tweet.create</code> (Creates post on X Feed)</li>
-              <li>Tool 2: <code className="font-semibold">telegram_v5_0.sendmessage.create</code> (Broadcasts to @BeingA_07 &bull; Chat ID: 8330458164)</li>
-              <li>Tool 3: <code className="font-semibold">notion.page.create</code> (Archives payload in Notion Hub)</li>
+          <div className="p-3 bg-primary-soft/50 border border-primary/20 rounded-lg text-text-primary leading-relaxed">
+            <strong className="text-primary font-semibold">Hackathon Agent Pipeline:</strong> This test executes 3 Swytchcode canonical tools in a single autonomous pipeline:
+            <ul className="list-disc list-inside mt-1 font-mono text-[11px] text-text-secondary space-y-0.5">
+              <li>Tool 1: <code className="font-semibold text-text-primary">x_v2.tweet.create</code> (Creates post on X Feed)</li>
+              <li>Tool 2: <code className="font-semibold text-text-primary">telegram_v5_0.sendmessage.create</code> (Broadcasts to @BeingA_07 &bull; Chat ID: 8330458164)</li>
+              <li>Tool 3: <code className="font-semibold text-text-primary">notion.page.create</code> (Archives payload in Notion Hub)</li>
             </ul>
           </div>
 
@@ -521,34 +512,28 @@ export function AccountsView({ accounts = [], onUpdateAccount, onRefresh }) {
           />
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">
+            <label className="block text-xs font-medium text-text-primary mb-1">
               Dispatch Message / Content
             </label>
             <textarea
               rows={3}
               value={omniContent}
               onChange={(e) => setOmniContent(e.target.value)}
-              className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-900 resize-none font-sans"
+              className="w-full text-xs p-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary resize-none font-sans"
               placeholder="Content to broadcast across all 3 platforms..."
             />
           </div>
 
           {/* Execution Results View */}
           {omniResult && (
-            <div className="border border-slate-200 rounded-lg p-3 bg-slate-50 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                <span className="font-semibold text-slate-900">
+            <div className="border border-border rounded-lg p-3 bg-surface-soft space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-border">
+                <span className="font-semibold text-text-primary">
                   Execution Report ({omniResult.pipeline || "Swytchcode Pipeline"})
                 </span>
-                <span
-                  className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
-                    omniResult.allSuccessful
-                      ? "bg-emerald-100 text-emerald-800"
-                      : "bg-blue-100 text-blue-800"
-                  }`}
-                >
+                <Badge variant={omniResult.allSuccessful ? "success" : "info"} size="sm">
                   {omniResult.allSuccessful ? "All Tools Dispatched" : "Completed with Diagnostics"}
-                </span>
+                </Badge>
               </div>
 
               {Array.isArray(omniResult.toolsExecuted) ? (
@@ -556,38 +541,35 @@ export function AccountsView({ accounts = [], onUpdateAccount, onRefresh }) {
                   {omniResult.toolsExecuted.map((tool, idx) => (
                     <div
                       key={idx}
-                      className="p-2.5 bg-white border border-slate-200 rounded text-[11px] space-y-1"
+                      className="p-2.5 bg-surface border border-border rounded-md text-[11px] space-y-1"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <PlatformIcon platform={tool.name} className="w-4 h-4 text-slate-700" />
-                          <span className="font-semibold text-slate-900">{tool.name}</span>
-                          <span className="text-slate-400 font-mono text-[10px]">
+                          <PlatformIcon platform={tool.name} className="w-4 h-4 text-text-secondary" />
+                          <span className="font-semibold text-text-primary">{tool.name}</span>
+                          <span className="text-text-muted font-mono text-[10px]">
                             ({tool.canonicalId || tool.tool})
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-slate-400 font-mono">{tool.latency}</span>
-                          <span
-                            className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                              tool.success
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : "bg-amber-50 text-amber-700 border border-amber-200"
-                            }`}
+                          <span className="text-[10px] text-text-muted font-mono">{tool.latency}</span>
+                          <Badge
+                            variant={tool.success ? "success" : "warning"}
+                            size="sm"
                           >
                             {tool.success ? "HTTP 201 Created" : tool.status || "Check Credentials"}
-                          </span>
+                          </Badge>
                         </div>
                       </div>
 
                       {tool.output && (
-                        <div className="bg-slate-900 text-emerald-400 p-2 rounded font-mono text-[10px] overflow-x-auto max-h-24">
+                        <div className="bg-surface-active text-success p-2 rounded font-mono text-[10px] overflow-x-auto max-h-24 border border-border">
                           {JSON.stringify(tool.output, null, 2)}
                         </div>
                       )}
 
                       {tool.error && (
-                        <div className="bg-rose-50 border border-rose-100 text-rose-700 p-2 rounded font-mono text-[10px] overflow-x-auto max-h-20">
+                        <div className="bg-danger-soft border border-danger/20 text-danger p-2 rounded font-mono text-[10px] overflow-x-auto max-h-20">
                           {typeof tool.error === "string" ? tool.error : JSON.stringify(tool.error)}
                         </div>
                       )}
@@ -595,7 +577,7 @@ export function AccountsView({ accounts = [], onUpdateAccount, onRefresh }) {
                   ))}
                 </div>
               ) : (
-                <pre className="text-[10px] font-mono text-slate-700 bg-white p-2 rounded border border-slate-200 overflow-x-auto">
+                <pre className="text-[10px] font-mono text-text-secondary bg-surface p-2 rounded border border-border overflow-x-auto">
                   {JSON.stringify(omniResult, null, 2)}
                 </pre>
               )}
@@ -676,11 +658,11 @@ export function AccountsView({ accounts = [], onUpdateAccount, onRefresh }) {
             onChange={(e) => setNewEmail(e.target.value)}
           />
 
-          <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded border border-slate-200">
+          <div className="text-xs text-text-muted bg-surface-soft p-3 rounded-lg border border-border">
             Authorization tokens are vaulted using Swytchcode encrypted vault and refreshed automatically before expiration.
           </div>
         </div>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }

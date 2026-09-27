@@ -16,10 +16,16 @@ import {
   ArrowUpDown,
   ExternalLink,
 } from "lucide-react";
-import { Button } from "../components/common/Button";
-import { StatusBadge } from "../components/common/Badge";
+import {
+  PageContainer,
+  PageHeader,
+  Button,
+  StatusBadge,
+  EmptyState,
+  Modal,
+  Card,
+} from "../components/ui";
 import { PlatformIcon } from "../components/common/PlatformIcon";
-import { EmptyState } from "../components/common/EmptyState";
 import { useToast } from "../components/common/Toast";
 import { swytchcode } from "../services/swytchcode";
 
@@ -133,56 +139,50 @@ export function PostsView({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
-            Posts
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Central operational queue to manage, schedule, edit, and inspect all social content.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              addToast({
-                type: "info",
-                title: "Import Posts",
-                message: "CSV/JSON batch parser ready. Select template or drag files.",
-              });
-            }}
-            icon={Upload}
-          >
-            Import
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={onOpenCreatePost}
-            icon={Plus}
-          >
-            Create Post
-          </Button>
-        </div>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Posts"
+        description="Central operational queue to manage, schedule, edit, and inspect all social content."
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                addToast({
+                  type: "info",
+                  title: "Import Posts",
+                  message: "CSV/JSON batch parser ready. Select template or drag files.",
+                });
+              }}
+              icon={Upload}
+            >
+              Import
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={onOpenCreatePost}
+              icon={Plus}
+            >
+              Create Post
+            </Button>
+          </>
+        }
+      />
 
       {/* Filter and Search Toolbar */}
-      <div className="bg-white border border-slate-200 rounded-lg p-3 space-y-3">
+      <Card padding="sm" className="space-y-3">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Search box */}
           <div className="relative flex-1 w-full md:max-w-sm">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               placeholder="Filter by keyword, title, account..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 w-full pl-8 pr-3 text-xs bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-300 focus:bg-white text-slate-800 placeholder:text-slate-400 transition-colors"
+              className="h-8 w-full pl-8 pr-3 text-xs bg-surface-soft border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface text-text-primary placeholder:text-text-disabled transition-colors"
             />
           </div>
 
@@ -192,7 +192,7 @@ export function PostsView({
             <select
               value={platformFilter}
               onChange={(e) => setPlatformFilter(e.target.value)}
-              className="h-8 text-xs bg-slate-50 border border-slate-200 rounded px-2.5 text-slate-700 focus:outline-none focus:border-slate-400"
+              className="h-8 text-xs bg-surface-soft border border-border rounded-md px-2.5 text-text-secondary focus:outline-none focus:border-border-hover cursor-pointer"
             >
               <option value="All">Platform: All</option>
               <option value="X">X (Twitter)</option>
@@ -208,7 +208,7 @@ export function PostsView({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-8 text-xs bg-slate-50 border border-slate-200 rounded px-2.5 text-slate-700 focus:outline-none focus:border-slate-400"
+              className="h-8 text-xs bg-surface-soft border border-border rounded-md px-2.5 text-text-secondary focus:outline-none focus:border-border-hover cursor-pointer"
             >
               <option value="All">Status: All</option>
               <option value="Scheduled">Scheduled</option>
@@ -223,7 +223,7 @@ export function PostsView({
             <select
               value={campaignFilter}
               onChange={(e) => setCampaignFilter(e.target.value)}
-              className="h-8 text-xs bg-slate-50 border border-slate-200 rounded px-2.5 text-slate-700 focus:outline-none focus:border-slate-400"
+              className="h-8 text-xs bg-surface-soft border border-border rounded-md px-2.5 text-text-secondary focus:outline-none focus:border-border-hover cursor-pointer"
             >
               {campaigns.map((c) => (
                 <option key={c} value={c}>
@@ -240,7 +240,7 @@ export function PostsView({
                   setCampaignFilter("All");
                   setSearchQuery("");
                 }}
-                className="text-xs text-slate-500 hover:text-slate-800 underline px-1"
+                className="text-xs text-text-muted hover:text-text-primary underline px-1 cursor-pointer"
               >
                 Reset
               </button>
@@ -250,19 +250,19 @@ export function PostsView({
 
         {/* Selected Items Batch Toolbar */}
         {selectedPostIds.length > 0 && (
-          <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100 rounded text-xs text-slate-700">
+          <div className="flex items-center justify-between px-3 py-1.5 bg-surface-soft border border-border rounded-md text-xs text-text-secondary">
             <span>{selectedPostIds.length} posts selected</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleBatchDelete}
-                className="text-rose-600 hover:text-rose-700 font-medium flex items-center gap-1"
+                className="text-danger hover:opacity-80 font-medium flex items-center gap-1 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" /> Delete Selected
               </button>
             </div>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Main Table */}
       <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-none">
@@ -283,7 +283,6 @@ export function PostsView({
                 </th>
                 <th className="px-3 py-3 min-w-[200px] max-w-xs md:max-w-md">Post & Content</th>
                 <th className="px-3 py-3 whitespace-nowrap">Platform</th>
-                <th className="hidden sm:table-cell px-3 py-3 whitespace-nowrap">Account</th>
                 <th
                   className="hidden md:table-cell px-3 py-3 cursor-pointer select-none hover:text-slate-800 whitespace-nowrap"
                   onClick={() => {
@@ -297,14 +296,13 @@ export function PostsView({
                   </div>
                 </th>
                 <th className="px-3 py-3 whitespace-nowrap">Status</th>
-                <th className="hidden lg:table-cell px-3 py-3 whitespace-nowrap">Campaign</th>
                 <th className="px-3 py-3 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
               {filteredPosts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8">
+                  <td colSpan={6} className="py-8">
                     <EmptyState
                       title="No matching posts found"
                       description="No posts match the current filter or search criteria."
@@ -344,21 +342,21 @@ export function PostsView({
                             />
                           </div>
                         ) : (
-                          <div className="w-9 h-9 rounded border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 text-slate-400 mt-0.5">
+                          <div className="w-9 h-9 rounded border border-border bg-surface-soft flex items-center justify-center shrink-0 text-text-muted mt-0.5">
                             <PlatformIcon platform={post.platform} className="w-4 h-4" />
                           </div>
                         )}
                         <div className="min-w-0 flex-1 overflow-hidden">
                           <button
                             onClick={() => setInspectingPost(post)}
-                            className="font-medium text-slate-900 hover:text-blue-600 block text-left leading-tight truncate w-full"
+                            className="font-medium text-text-primary hover:text-primary transition-colors block text-left leading-tight truncate w-full cursor-pointer"
                             title={typeof post.title === "string" ? post.title : ""}
                           >
                             {typeof post.title === "object"
                               ? post.title?.caption || post.title?.title || JSON.stringify(post.title)
                               : post.title}
                           </button>
-                          <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 break-words">
+                          <p className="text-xs text-text-muted line-clamp-2 mt-0.5 break-words">
                             {typeof post.content === "object"
                               ? post.content?.caption || post.content?.text || JSON.stringify(post.content)
                               : post.content}
@@ -393,11 +391,6 @@ export function PostsView({
                       </div>
                     </td>
 
-                    {/* Account */}
-                    <td className="hidden sm:table-cell px-3 py-3 font-mono text-[11px] text-slate-600 truncate max-w-[120px]">
-                      {post.account}
-                    </td>
-
                     {/* Scheduled / Date */}
                     <td className="hidden md:table-cell px-3 py-3 text-slate-600 whitespace-nowrap">
                       <div className="text-[11px] font-mono">
@@ -417,17 +410,6 @@ export function PostsView({
                     {/* Status */}
                     <td className="px-3 py-3 whitespace-nowrap">
                       <StatusBadge status={post.status} />
-                    </td>
-
-                    {/* Campaign */}
-                    <td className="hidden lg:table-cell px-3 py-3 text-slate-600">
-                      {post.campaign ? (
-                        <span className="inline-block px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-[10px] text-slate-600 truncate max-w-[120px]">
-                          {post.campaign}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 text-[11px]">—</span>
-                      )}
                     </td>
 
                     {/* Actions */}
@@ -491,65 +473,27 @@ export function PostsView({
         </div>
       </div>
 
-      {/* Post Inspection Drawer / Modal */}
-      {inspectingPost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-[2px]">
-          <div className="bg-white rounded-lg border border-slate-200 max-w-lg w-full p-4 sm:p-5 space-y-4 max-h-[90vh] overflow-y-auto shadow-xl">
-            <div className="flex items-start justify-between border-b border-slate-100 pb-3 gap-2">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <PlatformIcon platform={inspectingPost.platform} className="w-4 h-4 shrink-0" />
-                  <h3 className="text-sm font-semibold text-slate-900 truncate">
-                    {inspectingPost.title}
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-500 mt-0.5 truncate">
-                  Account: {inspectingPost.account} · ID: {inspectingPost.id}
-                </p>
-              </div>
-              <StatusBadge status={inspectingPost.status} className="shrink-0" />
+      {/* Post Inspection Modal */}
+      <Modal
+        isOpen={!!inspectingPost}
+        onClose={() => setInspectingPost(null)}
+        title={
+          inspectingPost && (
+            <div className="flex items-center gap-2">
+              <PlatformIcon platform={inspectingPost.platform} className="w-4 h-4 shrink-0" />
+              <span className="truncate">{inspectingPost.title}</span>
             </div>
-
-            <div className="text-xs text-slate-800 whitespace-pre-wrap leading-relaxed p-3 bg-slate-50 rounded border border-slate-100 break-words break-all max-h-60 overflow-y-auto">
-              {typeof inspectingPost.content === "object"
-                ? inspectingPost.content?.caption || inspectingPost.content?.text || JSON.stringify(inspectingPost.content)
-                : inspectingPost.content}
-            </div>
-
-            {inspectingPost.mediaUrl && (
-              <div className="rounded border border-slate-200 overflow-hidden max-h-48 bg-slate-100">
-                <img
-                  src={inspectingPost.mediaUrl}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600 bg-slate-50 p-2.5 rounded border border-slate-100 font-mono">
-              <div>
-                <span className="text-slate-400">Scheduled:</span>{" "}
-                {new Date(inspectingPost.scheduledAt).toLocaleString()}
-              </div>
-              <div>
-                <span className="text-slate-400">Campaign:</span>{" "}
-                {inspectingPost.campaign || "None"}
-              </div>
-              <div>
-                <span className="text-slate-400">Tags:</span>{" "}
-                {inspectingPost.tags?.join(", ") || "None"}
-              </div>
-              <div>
-                <span className="text-slate-400">Swytchcode ID:</span> sc_live_3881
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          )
+        }
+        description={
+          inspectingPost &&
+          `Account: ${inspectingPost.account} · ID: ${inspectingPost.id}`
+        }
+        footer={
+          inspectingPost && (
+            <>
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
                 onClick={() => setInspectingPost(null)}
               >
@@ -568,10 +512,52 @@ export function PostsView({
                   Publish Now
                 </Button>
               )}
+            </>
+          )
+        }
+      >
+        {inspectingPost && (
+          <div className="space-y-4">
+            <div className="text-xs text-text-primary whitespace-pre-wrap leading-relaxed p-3 bg-surface-soft rounded-md border border-border-light break-words max-h-60 overflow-y-auto font-sans">
+              {typeof inspectingPost.content === "object"
+                ? inspectingPost.content?.caption || inspectingPost.content?.text || JSON.stringify(inspectingPost.content)
+                : inspectingPost.content}
+            </div>
+
+            {inspectingPost.mediaUrl && (
+              <div className="rounded-md border border-border overflow-hidden max-h-48 bg-surface-soft">
+                <img
+                  src={inspectingPost.mediaUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-text-secondary bg-surface-soft p-3 rounded-md border border-border-light font-mono">
+              <div>
+                <span className="text-text-muted">Scheduled:</span>{" "}
+                {new Date(inspectingPost.scheduledAt).toLocaleString()}
+              </div>
+              <div>
+                <span className="text-text-muted">Campaign:</span>{" "}
+                {inspectingPost.campaign || "None"}
+              </div>
+              <div>
+                <span className="text-text-muted">Tags:</span>{" "}
+                {inspectingPost.tags?.join(", ") || "None"}
+              </div>
+              <div>
+                <span className="text-text-muted">Status:</span>{" "}
+                <StatusBadge status={inspectingPost.status} className="ml-1" />
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </Modal>
+    </PageContainer>
   );
 }
